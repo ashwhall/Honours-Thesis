@@ -300,7 +300,7 @@
 		\label{fig:fitting:1}
 	\end{figure}
 
-	\subsection{Transfer Learning}
+	\subsection{Transfer Learning} \label{transfer-learning}
 	Transfer learning is a commonly employed technique of taking a neural network that has already been trained on a similar task, and adapting its weights to the new domain. For image classification, this is done by downloading a pre-trained model, replacing the final fully-connected softmax output layer with a new output layer and training on the new data-set. There isn't always a necessity to re-train the entire model, as a large portion may be general-enough to apply to the new dataset. Due to this, the fine-tuning of models varies between adapting all parameters in the network, to the last few layers, to only the final softmax layer.  \par
 	The assumption that transfer learning hinges on is that the features learnt on a large data-set are general enough to transfer to a new, similar data-set. There are a number of well-known model architectures available for download, typically being trained on the \textit{ImageNet} image database\parencite{ilsvr}. \par
 	If the model is trained on a sufficiently large data-set it is true that the learnt features are usually general enough to receive good results after introducing relatively few samples from the new domain; but is not as effective as possible, especially when the new domain is significantly different from the old. As this approach requires the training of a model on a large source data-set, the user is either stuck with an existing model and no option to change, or must first train their own custom model on the large data-set first. This is a long, costly process which can be prohibitive. \par
@@ -665,21 +665,51 @@
 
 	\chapter{Problem Definition} \label{problem-definition}
 	The task is to take a model which has been trained to classify $n$ classes $\bm{X}_S = {X_S^1, X_S^2, ..., X_S^n}$, and using only the model's weights and a \emph{small} number of examples from $m$ disjoint classes $\bm{X}_T = {X_T^1, X_T^2, ..., X_T^m}$, produce a model which can perform well on the combined set of classes $\bm{X}_S \cup \bm{X}_T$.
-	Furthermore, an important facet of the task to not only facilitate the addition of classes to a model, but to make the function repeatable, such that a model can be continuously extended throughout its lifetime. \par
+	Furthermore, the ideal solution would not only facilitate the addition of classes to a model, but be repeatable, such that a model can be continuously extended throughout its lifetime. \par
 	While the relatively recent resurgence of meta-learning techniques has prompted much research in few-shot and continuous learning, no previous works attempt this task precisely. This is largely because there is much to be done in each of these individual domains, with state-of-the-art results surpassed on a very regular basis. That being said, the efficacy of meta-learning techniques is beginning to reach a limit, meaning that more novel applications are able to be considered.	\par
-	The previous work that is nearest to the proposed task is \textit{Learning without Forgetting}\parencite{lwf} -- the fact that the loss function incorporates the persistence of old knowledge means that it is a strong contender. However, there is much to be gained by applying a meta-learnt system to the task, as carrying information between models allows for more generalised knowledge. An additional benefit is that an episodic learning schema provides opportunity to perform one-shot training. \par
+	The previous work that is nearest to the proposed task is \textit{Learning without Forgetting}\parencite{lwf} -- the fact that the loss function incorporates the persistence of old knowledge means that it is a strong contender. As noted however, this techique results in a separate set of class predictors for each added task, meaning that the domain of the input images must be known prior to performing inference. Furthermore, there is much to be gained by applying a meta-learnt system to the task, as carrying information between models allows for more generalised knowledge. An additional benefit is that an episodic learning schema provides opportunity to perform one-shot training. \par
 	
 	\section{Key Terminology}
-	\textit{Source classes} refer to a set of classes on which a \textit{source model} has been pre-trained without meta-learning. Similarly, a \textit{target model} is produced by extending a source model's classification ability to also include a set of \textit{target classes} -- a disjoint set of classes to those that the source model was trained on. \\
-	The \textit{meta-learner} is the system which facilitates the transformation of a source model into a target model. 
+	\textit{Source classes} are the set of classes on which a \textit{source model} has been pre-trained without meta-learning. Similarly, a \textit{target model} is produced by extending a source model's classification ability to also include a set of \textit{target classes} -- a disjoint set of classes to those that the source model was trained on. \\
+	\textit{Pre-training} refers to the procedure by which a source model is prepared. The \textit{meta-learner} is the system which performs the transformation of a source model into a target model.
 	
-	\section{Inputs/Outputs}
+	\section{Objective}
+	The standard technique for extending a classification neural network to a larger number of classes is transfer learning. We aim to overcome the impracticalities of this technique discussed in section \ref{transfer-learning}; specifically the requirement to retain source class examples and re-train on them. \par
+	The most straight-forward approach to extending a model to more classes is to simply augment the network by adding new weights, and training on target class examples. To that end, three experiments were performed to investigate the effects of catastrophic forgetting in a standard neural network (see figure \ref{fig:dir:1}). Each of the experiments begun with the same model pre-trained for 50-way classification, then extended to perform 60-way classification by adding 10 additional classes. \par
+	The first of the experiments (figure \ref{fig:dir:1}a) was to continue training the model with no steps taken to mitigate catastrophic forgetting -- simply adding new output classes and training. This resulted in almost instantaneous catastrophic forgetting, with the accuracy on the source classes rapidly approaching zero. \par
+	The second experiment (figure \ref{fig:dir:1}b) was to continue training in a similar manner, but disallowing any changes to the weights that provide predictions for the source classes. This affected no change to the results, as the target class head could very quickly grow the magnitude of the prediction probabilities to ``out-weigh'' the predictions of the source class prediction head. \par
+	The third experiment (figure \ref{fig:dir:1}c) attempted a more drastic technique to minimise catastrophic forgetting, by disallowing changes to any part of the model's weights except for those in the target class output head. As seen in the figure, catastrophic forgetting took a much longer time to cause a problem, but regardless still occurred. \par
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=10cm]{dir-1}
+		\caption{Validation accuracy with catastrophic forgetting}
+		(a) All weights in the network allowed to change; (b) only the model's body and target head allowed to change; (c) only the target head allowed to change.
+		\label{fig:dir:1}
+	\end{figure}
+	These results demonstrate that a more sophisticated solution is required if we are to extend a network as desired. We wish to therefore devise a system that can take an already-training classification model and a set of few target class example images, and produce a new model with the capacity to classify both old and new classes. \par
+	We quickly come up against a few major hurdles.The major hurdles then, are:
+	\subsubsection{Optimisation take no consideration for pre-existing knowledge}
+	As previously discussed, catastrophic forgetting occurs due to the optimizer minimising the loss for the given batch of examples by adjusting the model's weights, with nothing constraining the updates such that they preserve the network's existing internal feature representations. The challenge then, is to devise a way of applying gradients such that the knowledge embedded in the network is retained. The meta-learning setup could facilitate this, as by viewing the adaptation of the model itself as a learnable problem could allow for the implicit understanding of what "embedded knowledge" looks like within a model's weights.
+	\subsubsection{Gradients don't necessarily represent the whole dataset}
+	Using a small batch of examples for computing an update gradient causes similar problems to the previous point, in that the gradient only represents the best update \textit{given the current batch of examples}. Therefore, the traditional optimisation technique of applying an update which is a scaled step in the negative of the gradient is limited by way of the gradient itself not having enough information to bring the model to the true optimum parametrisation. The task is to leverage more information than is encoded in the gradient. The internal feature representation of a neural network is typically underutilised, as demonstrated by \parencite{hat} where having a learnt attention over the model allowed for a sparse internal representation. This implies that there is sufficient capacity in an average model to be extended to additional tasks. Furthermore, the meta-learning setup we wish to employ should once again allow us to see the parametersation and re-parametrisation of the model as a learnable problem, giving us the capacity to learn what the characteristics of the utilisation of a trained model, and compute updates within that context. \par
+		
+	\section{Inputs and Outputs}
+	As discussed, the meta-learner must itself perform the updates to a model with respect to a set of target class example images. The inputs to the meta-learner must therefore be a set of model parameters and either the target class examples, or gradients computed using those images as inputs to the model. For these works, we have chosen the latter. \par
+	As the desired outcome is to produce a new set of parameters for a model, we have a few options for what type of outputs we desire. The meta-learner can directly produce new weights for a model, the set of updates to apply to the pre-existing model, or a number of variations on the two. These will be discussed later in section \TOCITE{} where we consider the effects of each option. \par
+	A  view of the meta-learning system architecture appears in figure \ref{fig:metalearnersimple:1}, the details of which are discussed in section \ref{commonalities}.
 	
-	\section{Objective (what are we trying to improve)}
-	Include the graph from DIR that shows that the naive approach doesn't work. \\
-	Use equations etc.
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=10cm]{ml-highlevel-overview}
+		\caption{High-level meta-learner overview}
+		The meta-learner takes as inputs the source model weights, the gradients of the target class images with respect to the source model, and outputs a generated set of weights.
+		\label{fig:metalearnersimple:1}
+	\end{figure}
 	
-	\section{Summary (for problem definition)}
+	\section{Summary}
+	In this chapter we have discussed the general structure of our problem, and given a brief overview of what role the meta-learner must take in this task. It is clear at this point that the task is far from trivial, and requires overcoming multiple obstacles which appear to be inherent to gradient-based optimisation methods. \par
+	We will now discuss the specific setup for the task, and the technique by which we perform each experiment. \\
+	
 	
 	\chapter{Methodology}
 	
@@ -687,7 +717,7 @@
 	1 or 2 paragraphs at the beginning talking about the problem \\
 	few brief sentences about each approach \\
 	
-	\section{Discuss what is in common}
+	\section{Discuss what is in common} \label{commonalities}
 	Pre-training \\
 	Overall metalearner structure \\
 	episodic nature \\
