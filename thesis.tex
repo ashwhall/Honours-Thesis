@@ -740,21 +740,34 @@ for model specific stuff, discuss that individually with: \\
 - use the /description{/item{}} thing that Zhen mentioned \\
 
 \section{Datasets}
-Explain that we pre-train on microimagenet \\
-Describe the datasets and how they were split \\
-Explain why I made blocks, give a picture \\
-\subsection{\textit{micro}Imagenet}
-Imagenet\parencite{ilsvr} is a large scale database consisting of over 1 million images of approximately 256x256 pixels in over 20,000 categories. The large size of this dataset makes it an appropriate for the training of production models, but is regularly avoided for meta-learning experimentation due to the time required to train on all images. A sub-set of these images were selected to build \textit{mini}Imagenet, made of which is 60,000 images in 100 classes with 600 images per class. \par
-As we wish to use this dataset to pre-train the feature extractor of source models, it is helpful for the training images to be of the same dimensions as those the model will eventually work with. Due to this, we created \textit{micro}Imagenet, which is the same as \textit{mini}Imagenet, but with all of the images scaled to 32x32 pixels to match the dimensions of CIFAR100.
+Our research requires that any dataset possesses a few properties: a large number of classes; small image resolution (for speed in training); and -- ideally -- consistent image features between classes, to allow for the transfer of learnt features to new classes. Each of the following datasets have these properties, along with their own benefits and detriments.
 
 \subsection{CIFAR100}
-The CIFAR100\parencite{cifar100} dataset consists of 60,000 32x32 images in 100 classes with 600 images per class. 
-\subsection{Blocks}
+The CIFAR100\parencite{cifar100} dataset consists of 60,000 32x32 images in 100 classes with 600 images per class. The small resolution of this dataset is beneficial for meta-learning, as it allows for relatively short training times and subsequently, rapid prototyping. The features found in CIFAR100 don't necessarily represent real-world image features very accurately however, as a lot of subtleties are lost in the resizing.
 
+\subsection{BLOCKS}
+The BLOCKS dataset was created to provide a simpler collection of images than CIFAR100 to use for prototyping. It consists of 69,500 32x32 images in 139 classes with 500 images per class. Each class is a permutation of bright and dark colours in a 3x3 grid, with each example a random colour, scale and position on a black 32x32 image (figure \ref{fig:blocks:1}). \par
+Unlike the other two datasets, BLOCKS is completely synthetic, with no attempt to mimic real-life image distributions. The lack of complex image features lessens the burden of feature-learning from the neural network, as the relationships that form the objects in this dataset don't go much further than a simple combination of edges and corners. Although the dataset is inarguably simpler than the other two, it still remains sufficiently complex to demonstrate the inference capacity of a neural network, without resulting in over-fitting to the training set.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{blocks}
+	\caption{BLOCKS dataset images}
+	A sample of synthetic images found in the BLOCKS dataset.
+	\label{fig:blocks:1}
+\end{figure}
+\subsection{\textit{micro}Imagenet}
+Imagenet\parencite{ilsvr} is a large scale database consisting of over 1 million images of approximately 256x256 pixels in over 20,000 categories. The large size of this dataset makes it an appropriate for the training of production models, but is regularly avoided for meta-learning experimentation due to the time required to train on all images. A sub-set of these images were selected to build \textit{mini}Imagenet, made of which is 60,000 images in 100 classes with 600 images per class. \par
+As we will discuss in section \TOCITE{}, we wish to use this dataset to pre-train the feature extractor of source models, so it is helpful for the training images to be of the same dimensions as those the model will eventually work with. Due to this, we created \textit{micro}Imagenet, which is the same as \textit{mini}Imagenet, but with all of the images scaled to 32x32 pixels to match the dimensions of CIFAR100.
 
-\section{Optimization algorithms etc}
+\section{Hyper-parameters}
+The optimiser used for the experiments was Adam (section \ref{adam:1}) as it has proven to yield good results with little effort in finding an appropriate learning rate. A learning rate $5*10^{-4}$ was used for all experiments, as the results of a standard learning-rate finding procedure were inconclusive due to the lengthy time for the loss to begin improving. \par
+The number of tunable hyper-parameters were few, with additional parameters being set on a per-experiment basis, as will be discussed later. \par
 
-\section{Hardware/software}
+\section{Software}
+The implementation was written using the Python interface for Tensorflow\parencite{tensorflow}, Google's open-source computational framework. Tensorflow has a vast collection of neural network functions pre-written, allows for automatic differentiation, and generally provides a nice environment for deep learning. In addition, Deepmind's Sonnet\parencite{sonnet} was used, which abstracts some of the more complex and verbose aspects of Tensorflow by way of a light wrapper. Graphing and result logging was done using Tensorboard, a visualisation tool included with Tensorflow. \par
+
+\section{Hardware}
+As deep-learning is a computationally expensive task, a computer with a high-end modern GPU is required. A computer meeting these specification was provisioned, consisting of two 8GB Nvidia GTX 1080 graphics cards, a quad-core processor and 64GB of memory. The data-sets used are relatively small -- collectively consisting of approximately 3.5GB -- so hard-drive space was not a factor that requires consideration.  \par
 
 
 \chapter{Results}
