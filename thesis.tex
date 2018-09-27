@@ -633,6 +633,19 @@ Gradient Episodic Memory (GEM), proposed by Lopez-Paz et. al. \parencite{gem} co
 Minimising with constraints is an unconventional technique, and is posed as a per-parameter vector-direction constraint. They first compute the gradient for each parameter for the given example, then similarly compute the gradient for each example stored in memory. If the direction of the proposed gradient step doesn't point in the same direction as the gradient computed from memory (figure \ref{fig:gem:1}), they adjust the update direction to satisfy both directions. This can be seen as not directly optimizing towards a loss minimum for the memories, but as never adjusting parameters away from this minimum. \par
 This method demonstrates a strong reduction in catastrophic interference, but has two problems which cause the practicality of this method is questionable. It involves -- in a very literal sense -- storing old examples and replaying them, which goes against the idea of a true continuous learner and grows rapidly as the number of tasks increase. Secondly, this technique doesn't allow for a varied number of classes between classification tasks, which limits it to only tasks with the same output format. \par
 
+\subsubsection{Learning to Accept New Classes without Training}
+Hu Xu et. al. \parencite{l2ac} introduce a technique which -- while focussed on continuous learning -- allows for zero-shot learning at the same time. In a manner similar to Prototypical Networks \parencite{prototypical}, they consider classification to be a similarity measure between the query example and a set of class exemplars. They only apply their approach to text-based classification, but the work can simply be translated to the image domain. \par
+This work distinguishes between "seen" and "unseen" classes, whereas most other classification networks simply make predictions according to the class with the highest probability, regardless of the query example belonging to the known classes. However, what truly sets this work apart from Prototypical Networks and Relation Network \parencite{relationnet} is the introduction of a "ranker", which has the sole responsibility of finding the top-k most similar seen class examples before performing the costly comparison (figure \ref{fig:l2ac:1}). \par
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=14cm]{l2ac}
+	\caption{L2AC system architecture}
+	A query example is embedded, and the ranker finds the top-\textit{k} most similar embedded class exemplars. The meta-classifier computes the similarity between these \textit{k} examples and the query example, with the class-prediction being the highest probability class, if it is above a confidence threshold.
+	\label{fig:l2ac:1}
+\end{figure}
+For this text-based task, the ranker is simply the cosine similarity between the example and all stored examples. While this is an overly simple technique for classification, for the task of selecting the top-k, it more than suffices. The actual classification occurs in the Meta-Classifier, which has a "1-vs-many Matching Layer". This consists of the concatenation of the two examples' absolute difference, and element-wise summation to produce a "similarity space" vector. This new vector is passed through two fully-connected layers and a sigmoid function, to produce a scalar similarity score. An aggregation layer is used to produce a single class prediction, and the query example is considered to be from an unseen class if there is no class probability > 0.5. \par
+As noted, this technique is similar to previously discussed metric-based meta-learners, but has the added benefit that costly comparisons need not be made between all classes. As with all other metric-based solutions, it still has the undesirable property of needing to retain class examples for future usage. Due to the reduced number of comparisons, and the fact that only example embeddings need to be stored, this effect is minimised, but still present.
+
 \subsubsection{Overcoming Catastrophic Forgetting}
 Kirkpatrick et. al. \parencite{ewc} propose a solution for continuous learning by designing a loss function that ties parameters to a space in which the model performed well on a previous task. They introduce an algorithm referred to as Elastic Weight Consolidation (EWC), which slows down learning on weights based on how important they are to previously seen tasks, and gives learning trajectories to maintain optimal performance (figure \ref{fig:ewc:1}). They essentially seek to find a set of good parameters for a new task that is close to good parameters for previous tasks. \par
 \begin{figure}[h]
@@ -742,12 +755,24 @@ for model specific stuff, discuss that individually with: \\
 \section{Datasets}
 Our research requires that any dataset possesses a few properties: a large number of classes; small image resolution (for speed in training); and -- ideally -- consistent image features between classes, to allow for the transfer of learnt features to new classes. Each of the following datasets have these properties, along with their own benefits and detriments.
 
+\subsection{Omniglot}
+The Omniglot\parencite{omniglot} dataset is a collection of 1623 28x28 different handwritten characters from 50 alphabets, each with 20 examples drawn by different people (figure \ref{fig:omniglot:1}). The characters are black on a white background, and made up of relatively simple features. Due to the small number of examples per class, Omniglot is regularly used for few-shot learning experimentation\parencite{mlwtc},\parencite{matching},\parencite{prototypical}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=5cm]{omniglot}
+	\caption{Omniglot dataset images}
+	A small selection of characters found in the Omniglot dataset.
+	\label{fig:omniglot:1}
+\end{figure}
+
 \subsection{CIFAR100}
 The CIFAR100\parencite{cifar100} dataset consists of 60,000 32x32 images in 100 classes with 600 images per class. The small resolution of this dataset is beneficial for meta-learning, as it allows for relatively short training times and subsequently, rapid prototyping. The features found in CIFAR100 don't necessarily represent real-world image features very accurately however, as a lot of subtleties are lost in the resizing.
 
 \subsection{BLOCKS}
 The BLOCKS dataset was created to provide a simpler collection of images than CIFAR100 to use for prototyping. It consists of 69,500 32x32 images in 139 classes with 500 images per class. Each class is a permutation of bright and dark colours in a 3x3 grid, with each example a random colour, scale and position on a black 32x32 image (figure \ref{fig:blocks:1}). \par
 Unlike the other two datasets, BLOCKS is completely synthetic, with no attempt to mimic real-life image distributions. The lack of complex image features lessens the burden of feature-learning from the neural network, as the relationships that form the objects in this dataset don't go much further than a simple combination of edges and corners. Although the dataset is inarguably simpler than the other two, it still remains sufficiently complex to demonstrate the inference capacity of a neural network, without resulting in over-fitting to the training set.
+
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=15cm]{blocks}
@@ -755,6 +780,7 @@ Unlike the other two datasets, BLOCKS is completely synthetic, with no attempt t
 	A sample of synthetic images found in the BLOCKS dataset.
 	\label{fig:blocks:1}
 \end{figure}
+
 \subsection{\textit{micro}Imagenet}
 Imagenet\parencite{ilsvr} is a large scale database consisting of over 1 million images of approximately 256x256 pixels in over 20,000 categories. The large size of this dataset makes it an appropriate for the training of production models, but is regularly avoided for meta-learning experimentation due to the time required to train on all images. A sub-set of these images were selected to build \textit{mini}Imagenet, made of which is 60,000 images in 100 classes with 600 images per class. \par
 As we will discuss in section \TOCITE{}, we wish to use this dataset to pre-train the feature extractor of source models, so it is helpful for the training images to be of the same dimensions as those the model will eventually work with. Due to this, we created \textit{micro}Imagenet, which is the same as \textit{mini}Imagenet, but with all of the images scaled to 32x32 pixels to match the dimensions of CIFAR100.
