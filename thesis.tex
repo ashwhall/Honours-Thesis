@@ -727,23 +727,99 @@ We will now discuss the specific setup for the task, and the technique by which 
 \chapter{Methodology}
 
 \section{Overview}
-\TODO{Should this "overview" section exist? May be better to delete the section name.}
-Convolutions have proven useful for computer vision, as local information is sufficient to form an understanding of the relationships between pixel values. We extend that idea to the weights of a network, suggesting that a local view of a network's layers is sufficient to form an understanding of the relationships between weight. Carrying on from this, we build a Meta-Learner which convolves over the weights of a network and its gradients to produce a new set of weights as its output. \par
+Convolutions have proven useful for computer vision, as local information is sufficient to form an understanding of the relationships between pixel values. We extend that idea to the weights of a network, suggesting that a local view of a network's layers is sufficient to form an understanding of the relationships between weights. Carrying on from this, we build a Meta-Learner which convolves over the weights of a network and its gradients to produce a new set of weights as its output. \par
 There are many design factors for the Meta-Learner, which are explored in detail in the following sections. \par
 \TODO{Few brief sentences about each approach}
 
 \section{Experimental Setup} \label{commonalities}
-Many variants of the solution are explored in section \ref{approaches}, but we will begin by describing the commonalities between experiments, which form the consistent basis of the solution setup.
+Although the task is to take an arbitrary $N_{S}$-way classifier and extend that to be a $(N_{S}+N_{T})$-way classifier, we will focus on a specific number of classes, where $N_{S} = N_{T} = 5$; so as to minimise the amount of training time. Many variants of the solution are explored in section \ref{approaches}, but we will begin by describing the general design of the solution, which forms the basis of all experiments.
+
 
 \subsubsection{Pre-Training}
-Explain how the source models are trained.
+At its core, the theme of the task is to extend the knowledge in an already-trained network. We must therefore pre-train a collection of "source models" which act as the inputs to the meta-learner -- each of which need be trained on a unique class subset. \\
+For a dataset consisting of $C=100$ classes, there are ${C\choose N_S} = 75,287,520$ such unique subsets of size $N_S$. This is far more models than we wish to train, so we instead employ a simpler technique for subdividing the dataset into $C-N_S$ subsets: 
+\begin{align}
+	\bm{X}_i = \lbrace X_i, X_{i+1}, ..., X_{i+N_S-1} \rbrace, i \in[1, C-N_S] 
+\end{align}
+These class subsets are grouped into meta-train and meta-test sets with no overlap in classes across the two, with $\sim$20\% in the meta-test set. For our case of 100 classes, this results in 71 meta-train models (classes 1-75) and 20 meta-test models (classes 76-100).\par
+Each of these models is trained to convergence on the 5-way classification task, with care taken to not overfit to the relatively small training set - see figure \ref{fig:pre-training-acc:1} for the accuracy during this pre-training phase.
 
-\subsubsection{Meta-Learner}
-Explain the structure of the meta-learner (basically just inputs and outputs, and that it's embed->encode->decode->unembed)
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=16cm]{pre-training-acc}
+	\caption{Pre-training accuracy on 5-way CIFAR100}
+	\label{fig:pre-training-acc:1}
+	Values reported are the mean of 10 models
+\end{figure}
 
-\subsubsection{Training}
-Explain how the meta-learner/target models are trained. Episodes etc.
+\subsubsection{Model Architecture}
+The architecture of all source/target models is the same between experiments (figure \ref{fig:model-arch:1}), and are a small variation on a fairly standard meta-learning architecture. The primary difference being that we have chosen not to include biases in any of our layers, in an attempt to simplify the embedding/un-embedding discussed in section \ref{meta-learner-sub}. In addition to this, the model is fully-convolutional, and as such the predicted class probabilities are simply the maximum value in each channel of the output head.
 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=8cm]{model-arch}
+	\caption{Source/target model architecture}
+	\label{fig:model-arch:1}
+\end{figure}
+
+
+\subsection{Meta-Learner} \label{meta-learner-sub}
+The algorithm consists primarily of a meta-learner $M$, which takes the weights of a source model $\theta_S$, a set of target class images $\bm{x}_T$, and produces a set of updates $\Delta_M$ as below:
+
+	\begin{align}
+	\Delta_M = M(\bm{\theta}_S, \bm{x}_T)
+	\end{align}
+
+We will first discuss the structure of a meta-learner, what occurs during a single training ``episode'', then will further clarify the episode-based training procedure. As stated earlier, we will consider a model which is being transformed from a 5-way classifier into a 10-way classifier -- i.e. $N_{S} = N_{T} = 5$. At a high-level, the meta-learner architecture (figure \TOCITE[Make a minimal diagram, keep details to separate diagrams]{}) consists of four stages:
+\begin{itemize}
+	\item \textbf{Gradient calculation} - Gradients are calculated for the source model using target images.
+	\item \textbf{Embedding} - The weights and associated gradients for each layer are separately mapped to a fixed size matrix then stacked to form a 3d matrix with a depth of 2 -- maintaining separation between weights and gradients. The mapping is performed by ``pseudo-convolutions'' -- sliding fully-connected layers across the source-model weights, mapping each dimension to a fixed-size.
+	\item \textbf{Encoding and Decoding} - The weights and gradients are convolved over and down-sampled to produce a spatially-compressed representation, which is then convolved over further and up-sampled to return to the original spatial-dimensions. This output representation will only have a depth of 1, as we desire a single update value per-parameter.
+	\item \textbf{Unembedding} - The decoded representation is un-embedded to match the shapes of the input weights.
+\end{itemize}
+The target model is then produced by applying the model outputs as parameter updates to the source model -- some alternatives to a simple gradient update are discussed in section \ref{approaches}. \par
+Even the best adaptive optimizers (section \ref{optimizers:1}) consider only per-parameter information, without seeing the relationship between weights within even the same layer. The intuition for the encoder-decoder based approach is that as the weights and gradients are convolved and the spatial size of the features decreased, the meta-learner gains a more global perspective. We work with the assumption that gaining a larger perspective of parameter relationships is vital in performing a single, successful weight update. The encoder-decoder structure therefore allows for a large spatial view into the features to produce meaningful updates. It is this contextual information allows for the dramatic changes to parameters necessary for few-shot learning. \par
+Our solution is considered ``optimization based'', as we are dealing directly with the weights and gradients themselves. This is the only practical solution, as model based and metric based options impose restrictions on the model architecture - which is something we aim to minimise. \par
+
+
+
+
+\subsubsection{Model Preparation}
+Each source model $\bm{\theta}_S$ consists of a body and a source-class output head -- pre-trained to perform well on the related source classes. This model does not yet have output weights for the target classes, mapping features to probability predictions. Therefore, the models must be extended prior to entering the meta-learner. \par
+We do so by adding a new set of $N_T$ output channels to the model's existing head. The initialisation of these new weights are drawn from a truncated normal distribution (values which follow a normal distribution, but where those with magnitude greater than 2 standard deviations from the mean are dropped and re-picked), with the mean and standard deviation selected to match the distribution of the source class output head. The weights in the source model were populated in the same manner during the pre-training procedure. Some alternative initialisation schemes are explored later, in section \TOCITE{}. It is only at this stage, when the model has the correct number of output classes, can it be given to the meta-learner. \par
+
+\subsubsection{Inputs}
+The inputs to the meta-learner must be not only the model's weights, but also some gradients computed with relation to the target classes. We consider only the 5-shot task, such that we can gain good insight into the distribution of each class -- moreso than the 1-shot task. As such, using 5 examples from each of our target classes, we compute the loss between the model's 1predictions and the labels using mean-squared error (section \ref{loss:1}), and perform back-propagation through the model to compute the gradients. \par
+We now have a set of gradients - one for each weight in the source model, including the target class output head. At this point, all source class information is embedded in the model's weights, and that all target class information is embedded in the related gradients. We consider that this is sufficient to learn a good, generalised update to the source model to produce a high-performing target model.
+
+\subsubsection{Embedding}
+As we wish to minimise restrictions on model architecture, we must somehow reshape the weights and gradients such that it is largely architecture independent. We do so by performing an embedding on the weights in each layer. The implementation used in experiments don't allow for the source model having biases or fully-connected layers, though we do give that some consideration in (section \ref{future-works}). \par
+\TODO{\\
+	- Figure out the embedding dimensions in/out \\
+	- Make a diagram showing that \\
+	}
+
+\subsubsection{Encoding/Decoding}
+\TODO{\\
+	- Make a diagram \\
+	- Explain how the outputs can have arbitrary depth (for gates etc) \\
+	}
+How encoding works \\
+Comment on the "... a local view of a network's layers is sufficient to form an understanding of the relationships between weights" \\
+Can have a variable number of outputs (gate etc.)
+
+\subsubsection{Unembedding}
+How unembedding works (store the original shape) \\
+\TODO{\\
+	- Refer back to the embedding diagram
+	}
+
+\subsubsection{Training Procedure}
+As with other meta-learning setups, we adopt an episodic training procedure...
+\TODO{\\
+	- I think most of this can be copied from the lit survey, including the diagram \\
+	- Psuedo code would probably work a treat
+	}
 
 \subsection{Variants} \label{approaches}
 overview of how it works, with diagrams etc. \\
@@ -753,8 +829,10 @@ detailed description \\
 - with pseudocode/algorithm \\
 - diagrams? \\
 - include lots of subsections, based similar to what papers do ?? \\
+- Initialisation of new weights \\
+- Reptile \\
 
-\section{Summary (for methodology)}
+\section{Summary}
 
 
 \chapter{Experimental Setup}
@@ -821,8 +899,12 @@ Highlight how hard this problem is \\
 Highlight the important innovations in algorithms \\
 Highlight the important results \\
 
-\section{Future works}
-Think of a few ideas here
+\section{Future works} \label{future-works}
+Think of a few ideas here \\
+- architecture invariance \\
+  - fully-connected layers \\
+  - biases
+
 
 
 
