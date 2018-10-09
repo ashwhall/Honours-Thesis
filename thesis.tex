@@ -735,7 +735,7 @@ There are many design factors for the Meta-Learner, which are explored in detail
 Although the task is to take an arbitrary $N_{S}$-way classifier and extend that to be a $(N_{S}+N_{T})$-way classifier, we will focus on a specific number of classes, where $N_{S} = N_{T} = 5$; so as to minimise the amount of training time. Many variants of the solution are explored in section \ref{approaches}, but we will begin by describing the general design of the solution, which forms the basis of all experiments.
 
 
-\subsubsection{Pre-Training}
+\subsubsection{Pre-Training} \label{pre-training}
 At its core, the theme of the task is to extend the knowledge in an already-trained network. We must therefore pre-train a collection of "source models" which act as the inputs to the meta-learner -- each of which need be trained on a unique class subset. \\
 For a dataset consisting of $C=100$ classes, there are ${C\choose N_S} = 75,287,520$ such unique subsets of size $N_S$. This is far more models than we wish to train, so we instead employ a simpler technique for subdividing the dataset into $C-N_S$ subsets: 
 \begin{align}
@@ -815,22 +815,59 @@ How unembedding works (store the original shape) \\
 	}
 
 \subsubsection{Training Procedure}
-As with other meta-learning setups, we adopt an episodic training procedure...
+As with other meta-learning setups we adopt an episodic training procedure, where images are seen from both the training and test set in a single episode. The procedure during meta-training and meta-testing works in the same way, but with each using a disjoint subset of classes as described in section \ref{pre-training} - pre-training. \par
+The training procedure is outlined in figure \ref{fig:ml:2} and algorithm \TOCITE{}, but in its simplest form, consists of the following steps:
+\begin{enumerate}
+	\item Randomly sample a pre-trained source model $\bm{\theta}_S$, and add randomly initialised output weights.
+	\item Randomly sample a set of target classes $\bm{X}_T$, not overlapping with the source-classes.
+	\item Randomly sample training images $\bm{x}_{T,train}$ and test images $\bm{x}_{T,test}$ with classes $\bm{X}_T$.
+	\item Generate weight updates $\bm{\Delta}_M = M(\bm{\theta}_S, \bm{x}_{T,train})$.
+	\item Build target model by adding generated weight updates $\bm{\theta}_T = \bm{\theta}_S + \bm{\Delta}_M$.
+	\item \textit{(meta-training only)} Perform backpropagation through meta-learner with examples from combined test sets $\bm{x}_{S,test} \cup \bm{x}_{T,test}$, thus optimising the generation of weight-updates.
+\end{enumerate}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=10cm]{metalearneroverview}
+	\caption{Meta learner training procedure}
+	\label{fig:ml:2}
+	The Meta-Learner takes source model weights and target example gradients as input, and produces a set of weight updates. This new model predicts for the source and target classes, and the error is backpropagated into the Meta-Learner. 
+\end{figure}
+As during each episode the Meta-Learner sees not only a different set of source and target classes and images but a different model, the Meta-Learner becomes invariant to these. I.e. it doesn't depend on a specific  model, class set, or image distribution. This allows for meaningful knowledge to be obtained throughout training, thus maximising generalisation capability. \par
+
 \TODO{\\
-	- I think most of this can be copied from the lit survey, including the diagram \\
 	- Psuedo code would probably work a treat
 	}
 
 \subsection{Variants} \label{approaches}
-overview of how it works, with diagrams etc. \\
-- intuition behind the approach \\
-- why it's being approached that way \\
-detailed description \\
-- with pseudocode/algorithm \\
-- diagrams? \\
-- include lots of subsections, based similar to what papers do ?? \\
-- Initialisation of new weights \\
-- Reptile \\
+With such a relatively complex system, there are numerous design choices and opportunities for experimentation. We group these into four categories and explore each separately -- namely, \textit{weight initialisation}, \textit{meta-learner inputs}, \textit{meta-learner outputs} and \textit{dataset complexity}. Here we discuss the significance of each category, and describe the variants explored. \par
+
+\TODO{For the next subsubsections, try to include pseudo-code or diagrams where possible!}
+
+\subsubsection{Weight Initialisation}
+What is weight initialisation? \\
+Intuition/Why is it important/what happens when you change it? \\
+What experiments will be run? \\
+Why approached that way? \\
+Don't forget Reptile!
+
+\subsubsection{Meta-Learner Inputs}
+What is meta-learner inputs? \\
+Intuition/Why is it important/what happens when you change it? \\
+What experiments will be run? \\
+Why approached that way? \\
+
+\subsubsection{Meta-Learner Outputs}
+What is meta-learner outputs? \\
+Intuition/Why is it important/what happens when you change it? \\
+What experiments will be run? \\
+Why approached that way? \\
+
+\subsubsection{Dataset Complexity}
+What is dataset complexity? \\
+Intuition/Why is it important/what happens when you change it? \\
+What experiments will be run?\\
+Why approached that way? \\
+
 
 \section{Summary}
 
