@@ -775,13 +775,20 @@ The algorithm consists primarily of a meta-learner $M$, which takes the weights 
 	\Delta_M = M(\bm{\theta}_S, \bm{x}_T)
 	\end{align}
 
-We will first discuss the structure of a meta-learner, what occurs during a single training ``episode'', then will further clarify the episode-based training procedure. As stated earlier, we will consider a model which is being transformed from a 5-way classifier into a 10-way classifier -- i.e. $N_{S} = N_{T} = 5$. At a high-level, the meta-learner architecture (figure \TOCITE[Make a minimal diagram, keep details to separate diagrams]{}) consists of four stages:
+We will first discuss the structure of a meta-learner, what occurs during a single training ``episode'', then will further clarify the episode-based training procedure. As stated earlier, we will consider a model which is being transformed from a 5-way classifier into a 10-way classifier -- i.e. $N_{S} = N_{T} = 5$. At a high-level, the meta-learner architecture (figure \ref{fig:ml:3}) consists of four stages:
 \begin{itemize}
 	\item \textbf{Gradient calculation} - Gradients are calculated for the source model using target images.
 	\item \textbf{Embedding} - The weights and associated gradients for each layer are separately mapped to a fixed size matrix then stacked to form a 3d matrix with a depth of 2 -- maintaining separation between weights and gradients. The mapping is performed by ``pseudo-convolutions'' -- sliding fully-connected layers across the source-model weights, mapping each dimension to a fixed-size.
 	\item \textbf{Encoding and Decoding} - The weights and gradients are convolved over and down-sampled to produce a spatially-compressed representation, which is then convolved over further and up-sampled to return to the original spatial-dimensions. This output representation will only have a depth of 1, as we desire a single update value per-parameter.
 	\item \textbf{Unembedding} - The decoded representation is un-embedded to match the shapes of the input weights.
 \end{itemize}
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=17cm]{metalearnerarchitecture}
+	\caption{Meta learner architecture overview}
+	\label{fig:ml:3}
+	Gradients and weights are embedded, encoded, decoded and unembedded to their original shape.
+\end{figure}
 The target model is then produced by applying the model outputs as parameter updates to the source model -- some alternatives to a simple gradient update are discussed in section \ref{approaches}. \par
 Even the best adaptive optimizers (section \ref{optimizers:1}) consider only per-parameter information, without seeing the relationship between weights within even the same layer. The intuition for the encoder-decoder based approach is that as the weights and gradients are convolved and the spatial size of the features decreased, the meta-learner gains a more global perspective. We work with the assumption that gaining a larger perspective of parameter relationships is vital in performing a single, successful weight update. The encoder-decoder structure therefore allows for a large spatial view into the features to produce meaningful updates. It is this contextual information allows for the dramatic changes to parameters necessary for few-shot learning. \par
 Our solution is considered ``optimization based'', as we are dealing directly with the weights and gradients themselves. This is the only practical solution, as model based and metric based options impose restrictions on the model architecture - which is something we aim to minimise. \par
@@ -791,33 +798,53 @@ Our solution is considered ``optimization based'', as we are dealing directly wi
 
 \subsubsection{Model Preparation}
 Each source model $\bm{\theta}_S$ consists of a body and a source-class output head -- pre-trained to perform well on the related source classes. This model does not yet have output weights for the target classes, mapping features to probability predictions. Therefore, the models must be extended prior to entering the meta-learner. \par
-We do so by adding a new set of $N_T$ output channels to the model's existing head. The initialisation of these new weights are drawn from a truncated normal distribution (values which follow a normal distribution, but where those with magnitude greater than 2 standard deviations from the mean are dropped and re-picked), with the mean and standard deviation selected to match the distribution of the source class output head. The weights in the source model were populated in the same manner during the pre-training procedure. Some alternative initialisation schemes are explored later, in section \TOCITE{}. It is only at this stage, when the model has the correct number of output classes, can it be given to the meta-learner. \par
+We do so by adding a new set of $N_T$ output channels to the model's existing head. The initialisation of these new weights are drawn from a truncated normal distribution (values which follow a normal distribution, but where those with magnitude greater than 2 standard deviations from the mean are dropped and re-picked), with the mean and standard deviation selected to match the distribution of the source class output head. The weights in the source model were populated in the same manner during the pre-training procedure. Some alternative initialisation schemes are explored later, in section \ref{approaches}. It is only at this stage, when the model has the correct number of output classes, can it be given to the meta-learner. \par
 
 \subsubsection{Inputs}
 The inputs to the meta-learner must be not only the model's weights, but also some gradients computed with relation to the target classes. We consider only the 5-shot task, such that we can gain good insight into the distribution of each class -- moreso than the 1-shot task. As such, using 5 examples from each of our target classes, we compute the loss between the model's 1predictions and the labels using mean-squared error (section \ref{loss:1}), and perform back-propagation through the model to compute the gradients. \par
 We now have a set of gradients - one for each weight in the source model, including the target class output head. At this point, all source class information is embedded in the model's weights, and that all target class information is embedded in the related gradients. We consider that this is sufficient to learn a good, generalised update to the source model to produce a high-performing target model.
 
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=12cm]{embedding}
+	\caption{2D tensor embedding}
+	\label{fig:embedding:1}
+	A fully-connected layer slides along the height of a 2-dimensional tensor, mapping to a fixed-width. The same function is applied to the resultant tensor's height, mapping to a fixed-height. \textit{Unembedding operates in the same manner, but mapping from the embedded shape back to the original.}
+\end{figure}
 \subsubsection{Embedding}
 As we wish to minimise restrictions on model architecture, we must somehow reshape the weights and gradients such that it is largely architecture independent. We do so by performing an embedding on the weights in each layer. The implementation used in experiments don't allow for the source model having biases or fully-connected layers, though we do give that some consideration in (section \ref{future-works}). \par
-\TODO{\\
-	- Figure out the embedding dimensions in/out \\
-	- Make a diagram showing that \\
-	}
+The layers in a neural network consist of a varying number of weights, including convolutional layers. The weights of a convolutional layer are of shape
+\begin{align}
+	(kernel_{H}, kernel_{W}, channels_{in}, channels_{out})
+\end{align}
+So a 2D convolutional layer with a 3x3 kernel, from 16 input channels to 32 output channels has weights shaped $(3, 3, 16, 32)$. Although we can restrict the kernel shape to ensure consistency across two of the dimensions, it is unavoidable that the last two dimensions will be of arbitrary size. Our embedding function (figure \ref{fig:embedding:1}) takes care of this, by mapping the two last channels to a fixed shape. \par
+We do so by first combining the first two dimensions of the weights, to obtain a 3d tensor shaped
+\begin{align}
+	(kernel_{H}*kernel_{W}, channels_{in}, channels_{out})
+\end{align}
+We now consider the first dimension to be a ``batch dimension'' and apply the same embedding function to each element along that dimension. The operation works by first compressing along the 2\textsuperscript{nd} dimension, then the 3\textsuperscript{rd}. \par
+To do so, we construct fully-connected layers as required, mapping $channels_{in} \rightarrow emb_H$, where $emb_H$ is a hyperparameter specifying the height of the embedded weight. Similarly, we construct fully-connected layers mapping $channels_{out} \rightarrow emb_W$, for the embedded width. These fully-connected layers slide along the 2\textsuperscript{nd} and 3\textsuperscript{rd} dimensions in succession, to obtain a new tensor shaped
+\begin{align}
+(kernel_{H}*kernel_{W}, emb_H, emb_W)
+\end{align}
+which is a consistently-sized tensor for all layers when the kernel shape is fixed. We then flatten this tensor to provide a one-dimensional tensor shaped 
+\begin{align}
+(kernel_{H}*kernel_{W}*emb_H*emb_W)
+\end{align}
+It is important to flatten the tensor in this way, such that every layer in a neural network provides the same 1-dimensional embedding. Repeating this embedding function across all weights of a neural network results in a tensor shaped 
+\begin{align}
+(n_{layers}, kernel_{H}*kernel_{W}*emb_H*emb_W)
+\end{align}
+where the size variability comes solely from the number of layers in a network. \par
+The fully-connected layers in this embedding function utilise weight-sharing where possible, lazily creating new layers only as required. As the gradients of the source model are of the same shape as the weights, this procedure is repeated for those also, resulting in maximum weight-sharing to facilitate the learning of a good embedding function. \par
 
 \subsubsection{Encoding/Decoding}
-\TODO{\\
-	- Make a diagram \\
-	- Explain how the outputs can have arbitrary depth (for gates etc) \\
-	}
-How encoding works \\
-Comment on the "... a local view of a network's layers is sufficient to form an understanding of the relationships between weights" \\
-Can have a variable number of outputs (gate etc.)
+As discussed, our embedding function maps the entirety of a neural network's weights into a 2-dimensional tensor. Performing this same embedding operation on the gradients of the source model and stacking the results gives a 3D tensor, with a last dimension of size 2. This shape is similar to that of a typical image, with the number of ``colour channels'' in this case equal to two. \par
+A typical architecture for computer-vision neural networks is an \textit{encoder-decoder}, where the input image is convolved over, and has its spatial dimensions increased while increasing its depth dimension to produce an encoded representation of the knowledge held in the image. The inverse of this architecture is applied to the encoded image, decreasing the depth dimension while increasing the spatial dimensions. We apply this type of encoder-decoder network (figure \ref{fig:ml:3}, middle) to our embedded network weights, in order to produce a set of embedded model updates. The decoder output spatial dimensions are set to match the input, but the number of output channels is not fixed. This allows us to experiment with having the encoder-decoder learn to produce more than just the raw weight updates -- which are explored in section \ref{approaches}. \par
+Just as local information is sufficient to form an understanding of the relationships between pixel values in typical computer vision encoder-decoders, we work with the hypothesis that local weight/gradient information is sufficient to learn good update rules. In addition, this fully-convolutional architecture allows for an arbitrarily-sized network, consisting of any size embeddings and any number of layers. This allows for the encoder-decoder to be used for source models of arbitrary structure. \par
 
 \subsubsection{Unembedding}
-How unembedding works (store the original shape) \\
-\TODO{\\
-	- Refer back to the embedding diagram
-	}
+The decoded updates are still in an embedded space, and don't match the dimensions of the weights and gradients that were input to the beginning of the Meta-Learner. At this stage we apply an unembedding function, which is the logical inverse of the embedding function (figure \ref{fig:embedding:1}) -- unembedding can be seen as a special case of embedding, where the embedded size matches the shapes of the inputs from earlier. It is worthwhile noting that although we make good use of shared weights in both the embedder and the unembedder, we don't allow weight-sharing between the two, to not impose the same operation of both embedding and unembedding.
 
 \subsubsection{Training Procedure}
 As with other meta-learning setups we adopt an episodic training procedure, where images are seen from both the training and test set in a single episode. The procedure during meta-training and meta-testing works in the same way, but with each using a disjoint subset of classes as described in section \ref{pre-training} - pre-training. \par
@@ -839,13 +866,14 @@ The training procedure is outlined in figure \ref{fig:ml:2} and algorithm \ref{a
 \end{figure}
 As during each episode the Meta-Learner sees not only a different set of source and target classes and images but a different model, the Meta-Learner becomes invariant to these -- i.e. it doesn't depend on a specific  model, class set, or image distribution. This allows for meaningful knowledge to be obtained throughout training, thus maximising generalisation capability. \par
 
-\begin{algorithm}
+\begin{algorithm}[h!]
 	\caption{Meta-Learner $K$-shot Training Episode}
 	\label{alg-episode}
 	\begin{algorithmic}[1]
-		\Require{Meta-Learner $M$ consisting of weights $\bm{theta}_M$, learning rate $\alpha$}
+		\Require{Meta-Learner $M$ consisting of weights $\bm{\theta}_M$}
 		\Require{Source model $\bm{\theta}_S$, source classes $\bm{X}_S$, target classes $\bm{\theta}_T$}
 		\Require{Model initialisation function $init$}
+		\Require{Learning rate $\alpha$}
 		\State Sample $K$ target class examples $\bm{x}_{T,train}$ per class in $\bm{X}_T$
 		\State $\bm{\theta}_S \gets init(\bm{\theta}_S, \mathcal{N}(\mu, \sigma^2))$
 		\Comment{Extend model with random weights}
@@ -864,7 +892,7 @@ As during each episode the Meta-Learner sees not only a different set of source 
 \end{algorithm}
 
 \subsection{Variants} \label{approaches}
-With such a relatively complex system, there are numerous design choices and opportunities for experimentation. We group these into four categories and explore each separately -- namely, \textit{weight initialisation}, \textit{meta-learner inputs}, \textit{meta-learner outputs} and \textit{dataset complexity}. Here we discuss the significance of each category, and describe the variants explored. \par
+With such a complex system, there are numerous design choices and opportunities for experimentation. We group these into four categories and explore each separately -- namely, \textit{weight initialisation}, \textit{meta-learner inputs}, \textit{meta-learner outputs} and \textit{dataset complexity}. Here we discuss the significance of each category, and describe the variants explored. \par
 
 \TODO{For the next subsubsections, try to include pseudo-code or diagrams where possible!}
 
