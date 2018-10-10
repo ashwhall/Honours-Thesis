@@ -4,6 +4,9 @@
 \usepackage{bm}
 \usepackage{pgfplots}
 \usepackage{ amssymb }
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
 \usepackage{color, soul}
 \usepackage[backend=biber]{biblatex}
 \addbibresource{references.bib}
@@ -13,6 +16,8 @@
 %opening
 \title{Honours Thesis}
 \author{Ash}
+
+\def\BState{\State\hskip-\ALG@thistlm}
 
 \newcommand{\TODO}[1]{\sethlcolor{pink}\hl{\\(#1)\\}}
 \newcommand{\FEEDBACK}[1]{\sethlcolor{green}\hl{\\ Feedback: \\#1\\}}
@@ -816,7 +821,7 @@ How unembedding works (store the original shape) \\
 
 \subsubsection{Training Procedure}
 As with other meta-learning setups we adopt an episodic training procedure, where images are seen from both the training and test set in a single episode. The procedure during meta-training and meta-testing works in the same way, but with each using a disjoint subset of classes as described in section \ref{pre-training} - pre-training. \par
-The training procedure is outlined in figure \ref{fig:ml:2} and algorithm \TOCITE{}, but in its simplest form, consists of the following steps:
+The training procedure is outlined in figure \ref{fig:ml:2} and algorithm \ref{alg-episode}, but in its simplest form, consists of the following steps:
 \begin{enumerate}
 	\item Randomly sample a pre-trained source model $\bm{\theta}_S$, and add randomly initialised output weights.
 	\item Randomly sample a set of target classes $\bm{X}_T$, not overlapping with the source-classes.
@@ -827,16 +832,36 @@ The training procedure is outlined in figure \ref{fig:ml:2} and algorithm \TOCIT
 \end{enumerate}
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=10cm]{metalearneroverview}
+	\includegraphics[width=11cm]{metalearneroverview}
 	\caption{Meta learner training procedure}
 	\label{fig:ml:2}
 	The Meta-Learner takes source model weights and target example gradients as input, and produces a set of weight updates. This new model predicts for the source and target classes, and the error is backpropagated into the Meta-Learner. 
 \end{figure}
-As during each episode the Meta-Learner sees not only a different set of source and target classes and images but a different model, the Meta-Learner becomes invariant to these. I.e. it doesn't depend on a specific  model, class set, or image distribution. This allows for meaningful knowledge to be obtained throughout training, thus maximising generalisation capability. \par
+As during each episode the Meta-Learner sees not only a different set of source and target classes and images but a different model, the Meta-Learner becomes invariant to these -- i.e. it doesn't depend on a specific  model, class set, or image distribution. This allows for meaningful knowledge to be obtained throughout training, thus maximising generalisation capability. \par
 
-\TODO{\\
-	- Psuedo code would probably work a treat
-	}
+\begin{algorithm}
+	\caption{Meta-Learner $K$-shot Training Episode}
+	\label{alg-episode}
+	\begin{algorithmic}[1]
+		\Require{Meta-Learner $M$ consisting of weights $\bm{theta}_M$, learning rate $\alpha$}
+		\Require{Source model $\bm{\theta}_S$, source classes $\bm{X}_S$, target classes $\bm{\theta}_T$}
+		\Require{Model initialisation function $init$}
+		\State Sample $K$ target class examples $\bm{x}_{T,train}$ per class in $\bm{X}_T$
+		\State $\bm{\theta}_S \gets init(\bm{\theta}_S, \mathcal{N}(\mu, \sigma^2))$
+		\Comment{Extend model with random weights}
+		\State Evaluate $\nabla(\bm{\theta}_S,\bm{x}_T)$
+		\Comment{Compute gradients using target images}
+		\State $\bm{\Delta}_M \gets M(\bm{\theta}_S, \nabla(\bm{\theta}_S,\bm{x}_T))$
+		\Comment{Meta-Learner generates weight updates}
+		\State $\bm{\theta}_T \gets \bm{\theta}_S + \bm{\Delta}_M$
+		\State Sample $K$ source class examples $\bm{x}_{S,test}$ per class in $\bm{X}_S$
+		\State Sample $K$ target class examples $\bm{x}_{T,test}$ per class in $\bm{X}_T$
+		\State $\bm{x}_{test} \gets \bm{x}_{S,test} \cup \bm{x}_{T,test}$
+		\State Evaluate $\nabla(\bm{\theta}_M, \bm{x}_{test})$
+		\Comment{Compute Meta-Learner gradients using test examples}
+		\State {Update $\bm{\theta}_M \gets \bm{\theta}_M - \alpha \nabla(\bm{\theta}_M, \bm{x}_{test})$}
+	\end{algorithmic}
+\end{algorithm}
 
 \subsection{Variants} \label{approaches}
 With such a relatively complex system, there are numerous design choices and opportunities for experimentation. We group these into four categories and explore each separately -- namely, \textit{weight initialisation}, \textit{meta-learner inputs}, \textit{meta-learner outputs} and \textit{dataset complexity}. Here we discuss the significance of each category, and describe the variants explored. \par
