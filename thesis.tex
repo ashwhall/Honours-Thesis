@@ -906,6 +906,8 @@ As during each episode the Meta-Learner sees not only a different set of source 
 
 \section{Variants} \label{approaches}
 With such a complex system, there are numerous design choices and opportunities for experimentation. We group these into four categories and explore each separately -- namely: \textit{dataset complexity}, \textit{weight initialisation}, \textit{meta-learner inputs} and \textit{meta-learner outputs}. Here we discuss the significance of each category, and describe the variants explored. \par
+\TODO{
+	It's probably a good idea to train a full embedding model with split-stream encoders... somehow... Do it!}
 
 \subsection{Dataset Complexity}
 As will be discussed in section \ref{results-chapter}, the complexity of the dataset play a role in the success of this algorithm. We explore this with three different datasets (described in section\ref{datasets}), each with varying degrees of success. This is a problem for future work (discussed in section \ref{future-works}), but suitably serves our purposes. \par
@@ -948,32 +950,6 @@ It is expected that this technique will not yield especially good results, as th
 
 \subsubsection{Copy-Random Initialisation}
 Weights are built as in \textit{Random Initialisation} once only, and re-used for all source models. The expectation is that the weights produced using random initialisation act as a source of noise for the Meta-Learner, resulting in a more complex task for the Meta-Learner to apply meaningful updates. Using a copy-random strategy should allow for the meta-learner to become accustomed to a random distribution, without needing to compensate for the differently sampled points during each episode.
-
-\subsubsection{Reptile}
-\TODO{Remove this, probably}
-Weights are built as in \textit{Random Initialisation} once only, and are updated as per the Reptile\parencite{reptile} meta-learning system, which are shared between all source models (algorithm \ref{reptile-init}). Algorithm \ref{reptile-init} details the $init$ function in this case. The intuition here is that randomly initialised weights don't have a realistic distribution compared to a trained neural network -- Reptile has proven to build a good initialisation for networks to rapidly train, which is desirable for our purposes.
-
-\begin{algorithm}[h!]
-	\caption{$init$ - Reptile ($K$-shot)}
-	\label{reptile-init}
-	\begin{algorithmic}[1]
-		\Require{Source model output head weights $\bm{\theta}_{S,n}$}
-		\Require{$K$ source class examples $\bm{x}_{T,train}$}
-		\Require{Number of target classes $N_T$, step-size $\beta$}
-		\Require{Number of reptile steps $N_r$, current training step $k \in [1, steps]$}
-		\If {k = 1}
-			\State $\bm{\theta}_{S,n} \gets init(\bm{\theta}_{S,n})$ as in algorithm \ref{alg:random-init}
-		\EndIf
-		\State $\bm{\phi} \gets \bm{\theta}_{S,n}$
-		\For{$i = 1,2,..., N_r$}
-			\State Compute loss $\mathcal{L}$ with weights $\bm{\phi}$ and examples $\bm{x}_{T,train}$
-			\State Update $\bm{\phi} \gets $SGD$(\mathcal{L})$
-			\Comment Perform a single gradient step
-		\EndFor
-		\State Update $\bm{\theta}_{S,n} \gets \bm{\theta}_{S,n} + \beta(\bm{\phi} - \bm{\theta}_{S,n})$
-		
-	\end{algorithmic}
-\end{algorithm}
 
 \subsection{Meta-Learner Inputs} \label{ml-inputs}
 The algorithm description until this point has considered that the Meta-Learner will take the entirety of a neural network's weights and their related gradients as inputs; we explore the effects of only giving the final (output) layer weights as inputs, and maintaining the body of each model fixed. For this to be possible, the body of each source model must be identical, lest the Meta-Learner have an incomplete view of feature/class relationships. With the bodies identical and fixed, the Meta-Learner should be able to learn an implicit relationship between features in the body and classes in the output heads. It is in this case that we perform the two-phase pre-training as already described in section \ref{pre-training}.
@@ -1058,14 +1034,32 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 
 
 \chapter{Results} \label{results-chapter}
-\textit{I don't think the following is relevant, but try it:} \\
-Use what other papers have done \\
-Use their results to compare in my thesis too \\
-Ablation study \\
--Things like gating, tanh \\
-5shot,  5way, 10way \\
--Train models for each \\
-Discussion section at the end \\
+- Trained on CIFAR: \\
+- Tried the simpler architecture with head only into meta-learner \\
+- Show either one OR the other worked \\
+- Show Batch Prediction Entropy (entropy didn't decrease over the batch as it should) \\
+- Reasons that it didn't work \\
+- Developed BLOCKS \\
+- Why BLOCKS, (what properties does blocks have that CIFAR doesn't
+- Trained on BLOCKS \\
+- Show the new Batch Prediction entropy (the entropy decreased throughout training) \\
+- Trained on omniglot (what makes omniglot a better dataset to work with compared to BLOCKS?) \\
+- Initialisation variants \\
+- Meta-Learner input variants \\
+- Meta-Learner output variants \\
+
+
+
+\textbf{Trained on Omniglot}
+
+\TODO{Use what other papers have done \\
+	Use their results to compare in my thesis too \\
+	Ablation study \\
+	-Things like gating, tanh \\
+	5shot,  5way, 10way \\
+	-Train models for each \\
+	Discussion section at the end \\
+}
 
 \chapter{Conclusion}
 Highlight how hard this problem is \\

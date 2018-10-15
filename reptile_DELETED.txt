@@ -1,0 +1,26 @@
+
+\subsubsection{Reptile}
+\TODO{Remove this, probably}
+Weights are built as in \textit{Random Initialisation} once only, and are updated as per the Reptile\parencite{reptile} meta-learning system, which are shared between all source models (algorithm \ref{reptile-init}). Algorithm \ref{reptile-init} details the $init$ function in this case. The intuition here is that randomly initialised weights don't have a realistic distribution compared to a trained neural network -- Reptile has proven to build a good initialisation for networks to rapidly train, which is desirable for our purposes.
+
+\begin{algorithm}[h!]
+	\caption{$init$ - Reptile ($K$-shot)}
+	\label{reptile-init}
+	\begin{algorithmic}[1]
+		\Require{Source model output head weights $\bm{\theta}_{S,n}$}
+		\Require{$K$ source class examples $\bm{x}_{T,train}$}
+		\Require{Number of target classes $N_T$, step-size $\beta$}
+		\Require{Number of reptile steps $N_r$, current training step $k \in [1, steps]$}
+		\If {k = 1}
+			\State $\bm{\theta}_{S,n} \gets init(\bm{\theta}_{S,n})$ as in algorithm \ref{alg:random-init}
+		\EndIf
+		\State $\bm{\phi} \gets \bm{\theta}_{S,n}$
+		\For{$i = 1,2,..., N_r$}
+			\State Compute loss $\mathcal{L}$ with weights $\bm{\phi}$ and examples $\bm{x}_{T,train}$
+			\State Update $\bm{\phi} \gets $SGD$(\mathcal{L})$
+			\Comment Perform a single gradient step
+		\EndFor
+		\State Update $\bm{\theta}_{S,n} \gets \bm{\theta}_{S,n} + \beta(\bm{\phi} - \bm{\theta}_{S,n})$
+		
+	\end{algorithmic}
+\end{algorithm}
