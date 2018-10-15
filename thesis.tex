@@ -105,10 +105,10 @@ The softmax function (eq \ref{softmax:1}) squashes the arbitrary scores into a v
  \label{fig:softmax:1}
 \end{figure}
 
-\subsubsection{Cross-Entropy Loss}
+\subsubsection{Cross-Entropy Loss} \label{crossentropy}
 With the machine learning system producing a normalised probability distribution across classes, those values need be compared with the targets to produce a scalar loss value.
 Cross-entropy loss, otherwise known as \textit{log loss}, penalises differences between predicted values and targets, with the penalty growing harsher for further-away predictions as demonstrated in fig \ref{fig:cross-entropy:1}.\\
-For a vector of predictions $\bm{\hat{y}}$ and a one-hot target vector $\bm{y}$, the cross-entropy loss is:r
+For a vector of predictions $\bm{\hat{y}}$ and a one-hot target vector $\bm{y}$, the cross-entropy loss is:
 \begin{equation} \label{cross-entropy:1}
  H(\bm{\hat{y}}, \bm{y}) = - \sum_{k=1}^{N}y_k log(\hat{y}_k) \\
 \end{equation}
@@ -1034,6 +1034,22 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 
 
 \chapter{Results} \label{results-chapter}
+\TODO{Introduction}
+
+We begun our experiments by training the Meta-Learner on the CIFAR100 dataset. This proved to be a very difficult task, which yielded unsatisfying results -- figure \TOCITE{} shows the training accuracy curves on both the source and target datasets for a number of Meta-Learner variants. A common theme among these experiments is that of prediction exclusivity -- the produced model was only ever able to provide predictions for either the source classes \textit{or} the target classes. As a means of measuring this class exclusivity, we devised the metric \textit{Batch Prediction Entropy}. \par
+
+\subsubsection{Batch Prediction Entropy}
+In the context of information theory, entropy is a measure of the rate of information produced by a data source. Its general formula is given below, where we have chosen to use the natural logarithm:
+\begin{align} \ref{entropyfunc}
+H(X) &= \sum_{i=1}^{n}P(x_i) log(P(x_i)) \label{entropyfunc}
+\end{align}
+
+It is typically desired that the entropy of a predictor is large, as this means that the system is producing a large amount of information with each prediction -- corresponding to high-confidence predictions. However, considering an entire batch of predictions, if we are to sum the raw outputs from each example into a single probability distribution as shown in figure \TOCITE{}a, we would hope that each class has a similar total magnitude (assuming the batch contains an identical number of elements per class). A disparity in magnitude would indicate a disparity in entropy of a class (figure \TOCITE{}b). We therefore developed Batch Prediction Entropy (BPE) to give a quantitative measure of class prediction disparity, and to provide an indicator of class exclusivity. \par
+BPE is calculated as the entropy of the sum of the raw predictions of an entire batch of examples -- the formula for is given in equation \ref{eq:bpe}, where $\bm{\hat{Y}}$ is a matrix of raw outputs over a whole batch and $B$ is the batch-size. 
+\TODO{This is bad notation - get help?}
+\begin{align}
+BPE(\bm{\hat{Y}}) = H\Bigg(\Big(\sum_{k=1}^{B}\hat{Y}_{k, i}, \Big)\Bigg), i \in [1, batch]
+\end{align}
 - Trained on CIFAR: \\
 - Tried the simpler architecture with head only into meta-learner \\
 - Show either one OR the other worked \\
@@ -1045,6 +1061,7 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 - Show the new Batch Prediction entropy (the entropy decreased throughout training) \\
 - Trained on omniglot (what makes omniglot a better dataset to work with compared to BLOCKS?) \\
 - Initialisation variants \\
+- - Copy weights acts unexpectedly. We infer that it works well as omniglot wouldn't have crazy sparse weights, features are general across classes, unlike cifar \\
 - Meta-Learner input variants \\
 - Meta-Learner output variants \\
 
