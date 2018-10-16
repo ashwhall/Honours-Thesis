@@ -65,10 +65,10 @@
 Images are sources of highly-dimensional data for which humans have the incredible ability of understanding. Developing computer vision systems that perform to even a similar capacity to that of humans is an inherently difficult task. The gift of easily converting pixel values into meaningful concepts is a skill that computer vision experts have been attempting to transfer to computers for decades. \par
 The ability to quickly gain an understanding of a new concept is a uniquely human trait. Consider that after seeing a zebra only once, most humans would be able to easily identify it in a humorous police line-up  -- perhaps after the theft of a monkey's balloon --  but the best image recognition systems over the years would be dependant on seeing many examples of zebras. It is quite standard to present hundreds of examples of each new concept in order to learn which parts of the image data are unimportant noise, and which parts are characteristic of the class the image belongs to. \par
 Modern techniques have made great advances in the application of meta-learning techniques (learning to learn) to few-shot learning; the task of having a computer vision system learn to recognize images from only a few labelled examples. Meta-learning has also been applied to continuous learning, and while the results have been very encouraging, the problem of catastrophic forgetting persists. The challenge of continuous learning is to teach new classes to a system without interfering with the previously learnt tasks. \par
-We will now explore neural-networks more thoroughly, and how advancements in the field have put us in a good position to tackle few-shot and continuous learning. First we will discuss the motivations for data-driven machine learning, the breadth of applicable tasks, and how these can be achieved. We will end with the problems regularly encountered with small data-sets and how modern architectures seek to resolve these. \par
+We will now explore neural-networks more thoroughly, and how advancements in the field have put us in a good position to tackle few-shot and continuous learning. First we will discuss the motivations for data-driven machine learning, the breadth of applicable tasks, and how these can be achieved. We will end with the problems regularly encountered with small datasets and how modern architectures seek to resolve these. \par
 
 \section{Hand Engineered and Learnt Features} \label{hand-eng:1}
-Features are a general term for characteristic attributes which exist across all samples in a data-set or domain. These features were traditionally hand-engineered by machine learning experts, carefully selecting the base-components of which the data-set in question appears to comprise. A common hand-engineered feature is the Histogram of Oriented Gradients (fig \ref{fig:hog:1}), which results in small regions of an image voting on the best description of the local gradient. \par
+Features are a general term for characteristic attributes which exist across all samples in a dataset or domain. These features were traditionally hand-engineered by machine learning experts, carefully selecting the base-components of which the dataset in question appears to comprise. A common hand-engineered feature is the Histogram of Oriented Gradients (fig \ref{fig:hog:1}), which results in small regions of an image voting on the best description of the local gradient. \par
 However, a fundamental problem with hand-engineered features is that it imposes human knowledge onto a problem to be solved by a computer. Furthermore, key features for complex data such as images and video are incredibly difficult to ascertain -- especially if desiring generic, transferable features. With the rise of neural networks -- specifically CNNs, which will be discussed in detail later -- feature-learning has become the norm. This essentially takes the task of feature engineering and solves it in a data-driven manner, and allows for the learning of  a hierarchy of features -- features that are composed of lower-level features. \par
 \begin{figure}[!h]
  \centering
@@ -188,7 +188,7 @@ A valid interpretation of the weights in a neural network is to consider them a 
 
 \subsection{Stochastic Gradient Descent (SGD)} \label{sgd:1}
 An ANN begins with randomly generated weights and biases $\bm{W}$ and $\bm{B}$, which are collectively referred to as the ``parameters'' or ``weights'' and indicated by $\bm{\theta}$. The objective of an ANN is to select weights $\bm{\theta}$ that minimise the error computed by the loss function $\mathcal{L}$ (section \ref{loss:1}). Linear functions $f(\bm{x}, \bm{\theta})$ can be minimised by analytical techniques, but complex neural networks must be iteratively optimised by numerical methods. \par
-With the loss between a prediction $\hat{y}$ and target $y$, we can compute the gradients with respect to the parameters -- which essentially represents the direction of change which will result in a decrease in the loss value -- and make a small step in that direction (see figure \ref{fig:grad-descent:1}). When performing this operation over the entire data-set at once, this is known as gradient descent. This is usually not an option as the computational resources required for full gradient descent are prohibitive. If we instead repeat this operation for different examples until we have stabilised the loss to a low value, we have Stochastic Gradient Descent. The most common variant to this technique is known as Batch Gradient Descent, where instead of computing the loss and performing an update to the parameters on a per-example basis, the process is applied once per \textit{batch} of examples. It facilitates more stable learning, as the loss doesn't fluctuate as much as between single examples. Batch Gradient Descent is the basis for most ANN optimisation, although we'll discuss modern variants in section \ref{optimizers:1}. \par
+With the loss between a prediction $\hat{y}$ and target $y$, we can compute the gradients with respect to the parameters -- which essentially represents the direction of change which will result in a decrease in the loss value -- and make a small step in that direction (see figure \ref{fig:grad-descent:1}). When performing this operation over the entire dataset at once, this is known as gradient descent. This is usually not an option as the computational resources required for full gradient descent are prohibitive. If we instead repeat this operation for different examples until we have stabilised the loss to a low value, we have Stochastic Gradient Descent. The most common variant to this technique is known as Batch Gradient Descent, where instead of computing the loss and performing an update to the parameters on a per-example basis, the process is applied once per \textit{batch} of examples. It facilitates more stable learning, as the loss doesn't fluctuate as much as between single examples. Batch Gradient Descent is the basis for most ANN optimisation, although we'll discuss modern variants in section \ref{optimizers:1}. \par
 \begin{figure}[h]
  \centering
  \includegraphics[width=9cm]{graddescent}
@@ -244,7 +244,7 @@ The problem that is quickly encountered is how large a value to set the learning
 \end{figure}
 
 \subsection{Adaptive Optimizers} \label{optimizers:1}
-If we consider a data-set where each mini-batch has some noise but that there is an optimal parameterisation for the entire set, we could visualise the loss landscape as shifting slightly for each mini-batch, but where there is a common direction towards which most samples will lead. Standard SGD will just apply a fixed step-size for all updates which leads the parameters to oscillate along the greatest descent angle, regardless of past updates. \par
+If we consider a dataset where each mini-batch has some noise but that there is an optimal parameterisation for the entire set, we could visualise the loss landscape as shifting slightly for each mini-batch, but where there is a common direction towards which most samples will lead. Standard SGD will just apply a fixed step-size for all updates which leads the parameters to oscillate along the greatest descent angle, regardless of past updates. \par
 
 \subsubsection{SGD with Momentum}
 It is with the idea of a consistent optimization direction that momentum \parencite{backprop} comes into play. This is a technique of updating parameters while taking past updates into consideration to find the ``common direction'' in which to move. This is done by using an update vector which intuitively acts like the momentum of a ball rolling down a hill. For any update step, the direction vector is updated with a scaled contribution from the current gradient direction, and that vector is used to update the parameters. It essentially dampens oscillating movement, as the direction vector compounds contributions in the same direction as given in the following equation
@@ -292,12 +292,12 @@ where $\beta_1$, $\beta_2$ are hyper-parameters for the proportion of past infor
 While not the most recent (I have omitted a few other adaptive optimizers), Adam is rapidly becoming the most frequently used optimizer for its consistent convergence and ease-of-use.
 
 \section{Dealing with Small Training Data Sets}
-Gathering a large data-set can be very costly or impractical, with neural-networks regularly requiring hundreds or thousands of examples to learn anything. Due to the difficulty in obtaining data, many approaches have been devised to allow the training of neural networks with small data-sets. \par
+Gathering a large dataset can be very costly or impractical, with neural-networks regularly requiring hundreds or thousands of examples to learn anything. Due to the difficulty in obtaining data, many approaches have been devised to allow the training of neural networks with small datasets. \par
 
 \subsection{Overfitting}
-Likely the biggest problem with training on a small data-set is overfitting, which occurs when a model is trained on a small number of sample images. As mentioned earlier, it is desirable for a system to be shown enough images to determine which aspects of an image are characteristic of the class, and which are noise in the provided sample. Overfitting is when the model learns -- and becomes dependant on -- features specific to the training data provided that don't generalise well outside of that. \par
+Likely the biggest problem with training on a small dataset is overfitting, which occurs when a model is trained on a small number of sample images. As mentioned earlier, it is desirable for a system to be shown enough images to determine which aspects of an image are characteristic of the class, and which are noise in the provided sample. Overfitting is when the model learns -- and becomes dependant on -- features specific to the training data provided that don't generalise well outside of that. \par
 The effect of overfitting is that the model achieves a significantly lower accuracy when making predictions for previously-unseen images. When training on  a small training-set, overfitting can occur very easily, as models can learn features of the training images that are specific to those alone. When working with a larger training-set, the model typically sees enough variation in provided examples to gain a good approximation for the distribution of images within each class. \par
-A model's capacity plays a large role in appropriately fitting to a data-set. If the model has too many parameters, it can learn to ``remember'' the images for each class to make predictions, and overfitting results. If the model has too few parameters, the model cannot draw a complex-enough boundary between classes, and underfitting results. Figure \ref{fig:fitting:1} shows an example of this with a simple classification task, with three levels of fitting. The best solution is in the middle, where the decision-boundary is mostly right for the seen data-points, but isn't too tight around them. The overfitting and underfitting examples draw decision boundaries such that any new data-points are less likely to fall on their respectively correct sides. \par
+A model's capacity plays a large role in appropriately fitting to a dataset. If the model has too many parameters, it can learn to ``remember'' the images for each class to make predictions, and overfitting results. If the model has too few parameters, the model cannot draw a complex-enough boundary between classes, and underfitting results. Figure \ref{fig:fitting:1} shows an example of this with a simple classification task, with three levels of fitting. The best solution is in the middle, where the decision-boundary is mostly right for the seen data-points, but isn't too tight around them. The overfitting and underfitting examples draw decision boundaries such that any new data-points are less likely to fall on their respectively correct sides. \par
 \begin{figure}[!h]
  \centering
  \includegraphics[width=14cm]{fitting}
@@ -306,13 +306,13 @@ A model's capacity plays a large role in appropriately fitting to a data-set. If
 \end{figure}
 
 \subsection{Transfer Learning} \label{transfer-learning}
-Transfer learning is a commonly employed technique of taking a neural network that has already been trained on a similar task, and adapting its weights to the new domain. For image classification, this is done by downloading a pre-trained model, replacing the final fully-connected softmax output layer with a new output layer and training on the new data-set. There isn't always a necessity to re-train the entire model, as a large portion may be general-enough to apply to the new dataset. Due to this, the fine-tuning of models varies between adapting all parameters in the network, to the last few layers, to only the final softmax layer.  \par
-The assumption that transfer learning hinges on is that the features learnt on a large data-set are general enough to transfer to a new, similar data-set. There are a number of well-known model architectures available for download, typically being trained on the \textit{ImageNet} image database\parencite{ilsvr}. \par
-If the model is trained on a sufficiently large data-set it is true that the learnt features are usually general enough to receive good results after introducing relatively few samples from the new domain; but is not as effective as possible, especially when the new domain is significantly different from the old. As this approach requires the training of a model on a large source data-set, the user is either stuck with an existing model and no option to change, or must first train their own custom model on the large data-set first. This is a long, costly process which can be prohibitive. \par
-Despite these limitations, transfer learning is the most effective and frequently-used technique for training on a new data-set when the amount of labelled data is small, achieving better performance than training on the new labelled data alone. \par
+Transfer learning is a commonly employed technique of taking a neural network that has already been trained on a similar task, and adapting its weights to the new domain. For image classification, this is done by downloading a pre-trained model, replacing the final fully-connected softmax output layer with a new output layer and training on the new dataset. There isn't always a necessity to re-train the entire model, as a large portion may be general-enough to apply to the new dataset. Due to this, the fine-tuning of models varies between adapting all parameters in the network, to the last few layers, to only the final softmax layer.  \par
+The assumption that transfer learning hinges on is that the features learnt on a large dataset are general enough to transfer to a new, similar dataset. There are a number of well-known model architectures available for download, typically being trained on the \textit{ImageNet} image database\parencite{ilsvr}. \par
+If the model is trained on a sufficiently large dataset it is true that the learnt features are usually general enough to receive good results after introducing relatively few samples from the new domain; but is not as effective as possible, especially when the new domain is significantly different from the old. As this approach requires the training of a model on a large source dataset, the user is either stuck with an existing model and no option to change, or must first train their own custom model on the large dataset first. This is a long, costly process which can be prohibitive. \par
+Despite these limitations, transfer learning is the most effective and frequently-used technique for training on a new dataset when the amount of labelled data is small, achieving better performance than training on the new labelled data alone. \par
 
 \subsection{Few-Shot Learning}
-Few-shot learning is the ability to learn a new concept or idea from only a ``few'' examples. In the context of image-classification it is the ability to learn a new class from only a few example images. It's desirable to have a system that can learn from a small data-set, because -- as mentioned earlier -- it can be a long, costly process to label data-sets. \par
+Few-shot learning is the ability to learn a new concept or idea from only a ``few'' examples. In the context of image-classification it is the ability to learn a new class from only a few example images. It's desirable to have a system that can learn from a small dataset, because -- as mentioned earlier -- it can be a long, costly process to label datasets. \par
 The generalised description of few-shot learning for image classification is $N$-Way $K$-Shot learning, where $N$ is the number of classes between which the model is to make predictions and $K$ is the number of example images shown prior to having the model produce a prediction. Researchers tend to work on combinations of $N \in \{5, 10, 20\}$, $K \in \{1, 5\}$, regularly presented as one-shot and five-shot learning.
 
 \subsection{Meta Learning}
@@ -326,7 +326,7 @@ A \emph{meta-learner} is a system that's responsible for this external-observati
 
 \subsubsection{Training}
 We will now consider the environment in which the aforementioned meta-learning approaches are trained and executed. \textit{Note that this section deals only with few-shot meta-learning for image-classification}. Having the system gain a meta-understanding of a task is almost exclusively approached in an episodic manner -- each episode consisting of conditioning a model on some examples of the task, having the model make a prediction, then updating the parameters to optimise this process. \par
-As always in image-classification tasks, the data-set $\mathcal{D}$ is split into two class-disjoint sets $\mathcal{D}_{train}$ and $\mathcal{D}_{test}$, the latter a held-out set from which the model isn't allowed to learn. Additionally, as few-shot learning requires the exposure of examples before making a prediction, each of the sets is split on an episode basis into a \textit{support} set $\mathcal{D}_{S}$ and a \textit{query} set $\mathcal{D}_{Q}$. For the case of training five-way one-shot classification, the support set will consist of one image from each of five randomly selected classes from $\mathcal{D}_{train}$, with the query set consisting of one or more images drawn from the same data-set and belonging to one of the classes found in the support set (figure \ref{fig:episode:1}). The model is shown $\mathcal{D}_S$, optimizes itself for these classes, then is shown $\mathcal{D}_Q$ for which to make a prediction. The meta-learner observes this, and optimizes the process by which the learner adapts during each episode. \par
+As always in image-classification tasks, the dataset $\mathcal{D}$ is split into two class-disjoint sets $\mathcal{D}_{train}$ and $\mathcal{D}_{test}$, the latter a held-out set from which the model isn't allowed to learn. Additionally, as few-shot learning requires the exposure of examples before making a prediction, each of the sets is split on an episode basis into a \textit{support} set $\mathcal{D}_{S}$ and a \textit{query} set $\mathcal{D}_{Q}$. For the case of training five-way one-shot classification, the support set will consist of one image from each of five randomly selected classes from $\mathcal{D}_{train}$, with the query set consisting of one or more images drawn from the same dataset and belonging to one of the classes found in the support set (figure \ref{fig:episode:1}). The model is shown $\mathcal{D}_S$, optimizes itself for these classes, then is shown $\mathcal{D}_Q$ for which to make a prediction. The meta-learner observes this, and optimizes the process by which the learner adapts during each episode. \par
 Due to the episode-based training, where the system sees a ``new'' set of classes in each, the meta-learner learns class-agnostic relationships between the support-set and the query-set. This then means that the meta-learner must persist knowledge between episodes, effectively learning an episode-invariant learning technique. This is validated by presenting an episode from $\mathcal{D}_{test}$ without the meta-learner's observation. \par
 \begin{figure}[!h]
  \centering
@@ -354,7 +354,7 @@ A specific set-up for the problem of continuous learning is \emph{class-incremen
 The only ANNs we've covered as of this point are \textit{fully-connected neural networks} (section \ref{fully-connected:1}) which have a very limited capacity in terms of practical use-cases, as we'll explore in this section. \par
 
 \subsection{Convolutional Neural Networks} \label{cnn:1}
-Let us consider a fully-connected network for classification on the popular data-set MNIST (figure \ref{fig:mnist:1}), with the raw pixel values fed in one side and a class probability distribution being output. Fully-connected layers need a single column (vector) of values as inputs, so we will first ``unwrap'' the image into a long string of pixel values before feeding it in. \par
+Let us consider a fully-connected network for classification on the popular dataset MNIST (figure \ref{fig:mnist:1}), with the raw pixel values fed in one side and a class probability distribution being output. Fully-connected layers need a single column (vector) of values as inputs, so we will first ``unwrap'' the image into a long string of pixel values before feeding it in. \par
 \begin{figure}[h]
  \centering
  \includegraphics[width=6cm]{mnist}
@@ -516,7 +516,7 @@ The model's predicted class is the class of the support image with which the que
  The embedding module produces 3d feature maps for each support and query images, then each combination of (support, query) embedding pairs are further processed by the relation module to produce a relation score per pair. The predicted class is the maximum of these scores.
  \label{fig:relation-net:1}
 \end{figure}
-This incredibly simple solution achieves -- as of this writing -- the best results of any one-shot/few-shot techniques and is very easy to implement. However as with most metric-based approaches, Relation Network doesn't scale well as the number of classes increase, as a forward pass through the relation module needs to occur for every class and query image pair. This very quickly becomes a performance bottle-neck, and may be preventative for a many-class, high-resolution data-set. \newline \newline
+This incredibly simple solution achieves -- as of this writing -- the best results of any one-shot/few-shot techniques and is very easy to implement. However as with most metric-based approaches, Relation Network doesn't scale well as the number of classes increase, as a forward pass through the relation module needs to occur for every class and query image pair. This very quickly becomes a performance bottle-neck, and may be preventative for a many-class, high-resolution dataset. \newline \newline
 The solutions presented in this section are generally quite simple to implement, but have problems with scaling to a large number of classes, as they require computing and comparing embedded representations for each query. This makes metric based methods an unappealing choice for continuous learning tasks, where the number of classes is -- by definition -- going to increase throughout the life of the system. \par
 
 \subsection{Optimization Based} \label{related-meta-opt:1}
@@ -575,7 +575,7 @@ The parameters of the model are then updated using gradient-descent, computing g
 \begin{align}
  \theta \gets \theta - \beta\Delta_\theta \sum_{T_i} \mathcal{L}_{T_{i}}(f_{\theta'_i}) \label{eqn:maml2}
 \end{align}
-Although techniques which meta-learn an update rule may intuitively be more efficacious, research \parencite{universality} has shown that there is no loss of representational power when solely optimizing the initial parameters. The same research also showed that learning the initial parameters in this way is extremely resilient to over-fitting on small data-sets. The MAML algorithm yields very impressive results, with applicability to domains as varied as robotic control, reinforcement learning and computer vision. The technique allows rapid adaptation to unseen tasks, and is truly model-agnostic. The computation of equation \ref{eqn:maml2} is costly however, as it requires the calculation of second-order derivatives; it is desired to have a simpler technique in terms of computational complexity and implementation, as few libraries directly support second-derivatives. \par
+Although techniques which meta-learn an update rule may intuitively be more efficacious, research \parencite{universality} has shown that there is no loss of representational power when solely optimizing the initial parameters. The same research also showed that learning the initial parameters in this way is extremely resilient to over-fitting on small datasets. The MAML algorithm yields very impressive results, with applicability to domains as varied as robotic control, reinforcement learning and computer vision. The technique allows rapid adaptation to unseen tasks, and is truly model-agnostic. The computation of equation \ref{eqn:maml2} is costly however, as it requires the calculation of second-order derivatives; it is desired to have a simpler technique in terms of computational complexity and implementation, as few libraries directly support second-derivatives. \par
 \begin{figure}[h]
  \centering
  \includegraphics[width=9cm]{mamlalgo}
@@ -620,7 +620,7 @@ They utilize a loss function developed by Hinton et. al \parencite{distillation}
  \mathcal{L}_{old}(\bm{y}_o,\hat{\bm{y}}_o) = -\sum_{i=1}^{l}\big( {y'}_{o}^{(i)} \cdot \text{log } \hat{y'}_o^{(i)}\big)
 \end{align}
 Where $\bm{\hat{y}}_n$ is the one-hot target over the new classes, $\bm{\hat{y}}_o$ is the recorded probability distribution, and $\hat{y'}_n^{(i)}$ and ${y'}_{o}^{(i)}$ are the targets and predictions over the old classes with weights increased for smaller probabilities. The training process is sensitive, so they perform a "warm-up stage" where only the parameters in the new head are trained, before training with the full loss function end-to-end. \par
-While a simple and elegant approach, they produced mixed results. LwF's performance on the new dataset is quite consistently better than its competitors, yet demonstrates arbitrarily better and worse resilience to catastrophic interference for the old data-set. This could be a result of the fact that as the technique is not meta-learnt; the training process never receives direct feedback on its performance on the original data-set. If a new data-set and old data-set are not very similar, there is nothing ensuring that the model retains an internal feature representation that is relevant to the old classes; this would lead to performance degradation over time. \par
+While a simple and elegant approach, they produced mixed results. LwF's performance on the new dataset is quite consistently better than its competitors, yet demonstrates arbitrarily better and worse resilience to catastrophic interference for the old dataset. This could be a result of the fact that as the technique is not meta-learnt; the training process never receives direct feedback on its performance on the original dataset. If a new dataset and old dataset are not very similar, there is nothing ensuring that the model retains an internal feature representation that is relevant to the old classes; this would lead to performance degradation over time. \par
 
 \subsubsection{Overcoming Catastrophic Forgetting with Hard Attention to the Task}
 Taking inspiration from neurology, Serr\'a et. al. \parencite{hat} devised an implementation of \emph{inhibitory synapses} -- a biological process which makes a neuron less likely to fire. They perform this by learning a task-based hard-attention mechanism (HaT), which masks the activations on a per-neuron basis. They perform a learnt embedding of the task description per layer, which acts as the gate for that layer. This teaches the network to learn sparse internal representations for each task, effectively reducing the required capacity within the network during training, and allowing for re-use of suitable feature representations. \par
@@ -981,6 +981,24 @@ We also explore applying a non-linearity $tanh$ function to the deltas produced,
 \bm{\theta}_T &= \bm{\sigma}_M \odot \bm{\theta}_S + tanh(\bm{\Delta}_M)
 \end{align}
 
+\section{Metrics}
+The quality of a model is measured by two components: the accuracy of the target model on the target classes, and the accuracy of the target model on the source classes. The former is a measure of how much the model learns about the target classes; the latter a measure of how much the model retains accuracy on the source classes. Instead of considering the precision in terms of their absolute value, we will instead compute the difference between target model and source model precision. Concretely, for a collection of images, a model will produce a number of correct (C) and incorrect (I) predictions. We can therefore compute the precision for a given model $\bm{\theta}$ on images $\bm{x}$ as in equation \ref{eqn:evaluation:1}.
+\begin{align} \label{eqn:evaluation:1}
+Precision(\bm{\theta}, \bm{x}) &= \frac{C}{C+I}
+\end{align}
+To compute the relative improvement or deterioration of performance of a model, we need to compute the difference in precision between a source model and corresponding target model. It is not possible to measure the source model's performance on the target classes directly however, as it is in the problem definition that the source model has never seen the target images. In this case, we use the source model's performance on the source classes as a proxy for initial performance. We define and use two metrics for assessment of a Meta-Learner's performance, retention and acquisition.\par
+\subsubsection{Retention}
+A measure of the Meta-Learner's success in retaining performance on the source classes, where a score of 0 indicates that the Meta-Learner discarded all prior knowledge, a score of 1 indicates that the Meta-Learner perfectly retained all prior knowledge, and a score $>1$ indicates that the Meta-Learner improved performance on the source classes. While a score $>1$ is unlikely, it is not strictly impossible, as it is possible that the Meta-Learner learns additional information other than what's given explicitly as inputs as a result of seeing a wide variety of models during training. The equation for retention is 
+\begin{align}
+Ret(\bm{\theta}, \bm{x}) &= \frac{Precision(\bm{\theta}_T, \bm{x}_S)}{ Precision(\bm{\theta}_S, \bm{x}_S)}
+\end{align}
+
+\subsubsection{Acquisition}
+A measure of the Meta-Learner's success in learning to predict for the target classes, where a score of 0 indicates that the Meta-Learner failed to learn anything, a score of 1 indicates that the Meta-Learner learned to predict for the target classes with the same accuracy as it performed on the source classes before training, and a score $>1$ indicates that the Meta-Learner performed better on the target classes than it did on the source classes before training.
+\begin{align}
+Acq(\bm{\theta}, \bm{x}) &= \frac{Precision(\bm{\theta}_T, \bm{x}_T)}{ Precision(\bm{\theta}_S, \bm{x}_S)}
+\end{align}
+
 \section{Summary}
 \TODO{Write a good summary!}
 
@@ -1030,7 +1048,7 @@ The number of tunable hyper-parameters were few, with additional parameters bein
 The implementation was written using the Python interface for Tensorflow\parencite{tensorflow}, Google's open-source computational framework. Tensorflow has a vast collection of neural network functions pre-written, allows for automatic differentiation, and generally provides a nice environment for deep learning. In addition, Deepmind's Sonnet\parencite{sonnet} was used, which abstracts some of the more complex and verbose aspects of Tensorflow by way of a light wrapper. Graphing and result logging was done using Tensorboard, a visualisation tool included with Tensorflow. \par
 
 \section{Hardware}
-As deep-learning is a computationally expensive task, a computer with a high-end modern GPU is required. A computer meeting these specification was provisioned, consisting of two 8GB Nvidia GTX 1080 graphics cards, a quad-core processor and 64GB of memory. The data-sets used are relatively small -- collectively consisting of approximately 3.5GB -- so hard-drive space was not a factor that requires consideration.  \par
+As deep-learning is a computationally expensive task, a computer with a high-end modern GPU is required. A computer meeting these specification was provisioned, consisting of two 8GB Nvidia GTX 1080 graphics cards, a quad-core processor and 64GB of memory. The datasets used are relatively small -- collectively consisting of approximately 3.5GB -- so hard-drive space was not a factor that requires consideration.  \par
 
 
 \chapter{Results} \label{results-chapter}
@@ -1040,30 +1058,73 @@ We begun our experiments by training the Meta-Learner on the CIFAR100 dataset. T
 
 \subsubsection{Batch Prediction Entropy}
 In the context of information theory, entropy is a measure of the rate of information produced by a data source. Its general formula is given below, where we have chosen to use the natural logarithm:
-\begin{align} \ref{entropyfunc}
+\begin{align}
 H(X) &= \sum_{i=1}^{n}P(x_i) log(P(x_i)) \label{entropyfunc}
 \end{align}
 
-It is typically desired that the entropy of a predictor is large, as this means that the system is producing a large amount of information with each prediction -- corresponding to high-confidence predictions. However, considering an entire batch of predictions, if we are to sum the raw outputs from each example into a single probability distribution as shown in figure \TOCITE{}a, we would hope that each class has a similar total magnitude (assuming the batch contains an identical number of elements per class). A disparity in magnitude would indicate a disparity in entropy of a class (figure \TOCITE{}b). We therefore developed Batch Prediction Entropy (BPE) to give a quantitative measure of class prediction disparity, and to provide an indicator of class exclusivity. \par
-BPE is calculated as the entropy of the sum of the raw predictions of an entire batch of examples -- the formula for is given in equation \ref{eq:bpe}, where $\bm{\hat{Y}}$ is a matrix of raw outputs over a whole batch and $B$ is the batch-size. 
-\TODO{This is bad notation - get help?}
-\begin{align}
-BPE(\bm{\hat{Y}}) = H\Bigg(\Big(\sum_{k=1}^{B}\hat{Y}_{k, i}, \Big)\Bigg), i \in [1, batch]
+It is typically desired that the entropy of a predictor is large, as this means that the system is producing a large amount of information with each prediction -- corresponding to high-confidence predictions. However, considering an entire batch of predictions, if we are to sum the raw outputs from each example into a single probability distribution as shown in figure \ref{fig:totalbatchpredscores:1}, we would hope that each class has a similar total magnitude (assuming the batch contains an identical number of elements per class); a difference in magnitude indicates a disparity in class predictions. We therefore developed Batch Prediction Entropy (BPE) to give a quantitative measure of class prediction disparity, and to provide an indicator of class exclusivity. BPE is calculated as the entropy of the sum of the raw predictions of an entire batch of examples. \par
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=13cm]{totalbatchpredscores}
+	\caption{Summed batch prediction scores}
+	The sum of raw prediction scores across an entire batch should ideally be of similar magnitudes
+	\label{fig:totalbatchpredscores:1}
+\end{figure}
+We first construct a $B \times N$ matrix $\bm{\hat{Y}}$, where $B$ is the batch size, $N$ is the number of classes, and element $\hat{y}_{ik}$ is the raw predicted probability for batch element $i$ for class $k$:
+\begin{align} \label{eq:bpe:1}
+\bm{\hat{Y}} = \begin{bmatrix}
+\hat{y}_{11} & \hat{y}_{12} & \hat{y}_{13} & \dots  & \hat{y}_{1N} \\
+\hat{y}_{21} & \hat{y}_{22} & \hat{y}_{23} & \dots  & \hat{y}_{2N} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\hat{y}_{B1} & \hat{y}_{B2} & \hat{y}_{B3} & \dots  & \hat{y}_{BN}
+\end{bmatrix}
 \end{align}
-- Trained on CIFAR: \\
-- Tried the simpler architecture with head only into meta-learner \\
-- Show either one OR the other worked \\
-- Show Batch Prediction Entropy (entropy didn't decrease over the batch as it should) \\
-- Reasons that it didn't work \\
-- Developed BLOCKS \\
-- Why BLOCKS, (what properties does blocks have that CIFAR doesn't
-- Trained on BLOCKS \\
-- Show the new Batch Prediction entropy (the entropy decreased throughout training) \\
-- Trained on omniglot (what makes omniglot a better dataset to work with compared to BLOCKS?) \\
-- Initialisation variants \\
-- - Copy weights acts unexpectedly. We infer that it works well as omniglot wouldn't have crazy sparse weights, features are general across classes, unlike cifar \\
-- Meta-Learner input variants \\
-- Meta-Learner output variants \\
+We then sum over the columns to produce the total batch prediction scores:
+\begin{align} \label{eq:bpe:2}
+\bm{\tilde{y}} &= (1, 1, \dots, 1)\bm{\hat{Y}} \\
+  &= \big(\hat{y}_{11} + \hat{y}_{21} + \dots + \hat{y}_{B1}, \dots, \hat{y}_{1N} + \hat{y}_{2N} + \dots + \hat{y}_{BN}\big)
+\end{align}
+The Batch Prediction Entropy is then the entropy as given in equation \ref{entropyfunc} of this resultant vector:
+\begin{align}
+BPE(\bm{\hat{Y}}) = H(\bm{\tilde{y}})
+\end{align}
+This metric gives us a quantitative measure of entropy over an entire batch of predictions. Unlike for a single example -- where we desire that entropy is high -- it is desired that the BPE of a model is low, corresponding to a similar level of prediction confidence among all classes. A low BPE is an indicator of minimal disparity between class prediction frequency (how often a class is predicted) and class prediction confidence (the confidence with which a class is predicted). \par
+The BPE is useful as a means of detecting dying neurons -- a relatively common failure in neural networks where neurons reach the value of zero and never recover. This is typically the result of an incorrect learning rate/optimiser configuration, or a complex network with gradients failing to give significant-enough signal to train correctly. Dying neurons effectively shrink the model capacity, and in most cases symptoms present as the model ``getting stuck'' predicting the same classes. \par
+
+\section{CIFAR100}
+With this metric in place, we trained our model on the CIFAR100 dataset, monitoring BPE to assess the model's capability. Some results are shown in figure \ref{fig:totalbatchpredgraph:1} for two implementations. Although the results of only two implementations are given, these are indicative of the results for every attempted implementation. In figure \ref{fig:totalbatchpredgraph:1}a, we see that the model only begins learning to predict the source classes, and in figure \ref{fig:totalbatchpredgraph:1}b the model only begins learning to predict the target classes. This result was reproduced for each implementation, with the model favouring one set of classes over the other. \par
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=17.5cm]{totalbatchpredgraph}
+	\caption{CIFAR100 Batch Prediction Entropy}
+	BPE of two implementations for the CIFAR100 task. The model begins learning to predict either the source or target classes exclusively in (a) and (b), respectively.
+	\label{fig:totalbatchpredgraph:1}
+\end{figure}
+We hypothesise that the features in the CIFAR100 dataset are too complex for our implementation, and therefore our solution cannot adequately learn the relationships between the parameters of a model trained for this task. The same results were produced when performing the simpler task described in section \ref{ml-inputs}, where only the head of the model is given as input to the Meta-Learner. \par
+For this, we performed two-phase pre-training as described in section \ref{pre-training}, pre-training the body of the source models on microImagenet, and fine-tuning each head with the CIFAR100 source classes. Despite the increased simplicity of this experiment, the same results were produced, with the model failing to learn anything of value. It is with this in mind that we set about developing the simpler BLOCKS dataset. \par
+
+\section{BLOCKS}
+The BLOCKS dataset has considerably less complex features than CIFAR, meaning that the task of learning a classification model parametrisation is simpler. This dataset was designed specifically to be an easier task than any public datasets, thus allowing us to build a proof-of-concept system before employing it on more difficult datasets. \par
+We trained a number of Meta-Learner variants on BLOCKS to validate the feasibility of our algorithm and obtained results that indicate successful training. The BPE graph from one such experiment is shown in figure \ref{fig:totalbatchpredgraphblocks:1}, where the trend indicates that the model begun learning a balanced prediction distribution across output classes. These results were coupled with an increase in classification scores -- table \TOCITE{} shows these scores for a collection of such experiments.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=10cm]{totalbatchpredgraphblocks}
+	\caption{BLOCKS Batch Prediction Entropy}
+	BPE for the BLOCKS task. A consistent decrease in BPE indicates that a model is learning evenly across all classes.
+	\label{fig:totalbatchpredgraphblocks:1}
+\end{figure}
+
+\TODO{
+	- Developed BLOCKS \\
+	- Why BLOCKS, (what properties does blocks have that CIFAR doesn't
+	- Trained on BLOCKS \\
+	- Show the new Batch Prediction entropy (the entropy decreased throughout training) \\
+	- Trained on omniglot (what makes omniglot a better dataset to work with compared to BLOCKS?) \\
+	- Initialisation variants \\
+	- - Copy weights acts unexpectedly. We infer that it works well as omniglot wouldn't have crazy sparse weights, features are general across classes, unlike cifar \\
+	- Meta-Learner input variants \\
+	- Meta-Learner output variants
+}
 
 
 
