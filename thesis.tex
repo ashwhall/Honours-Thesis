@@ -2,7 +2,7 @@
 \usepackage[a4paper, total={17cm, 24cm}]{geometry}
 \usepackage{amsmath}
 
-
+\usepackage{hhline}
 \usepackage{bm}
 \usepackage{pgfplots}
 \usepackage{amssymb}
@@ -54,6 +54,14 @@
   \vfill
  \end{center}
 \end{titlepage}
+
+\chapter*{Acknowledgements}
+\thispagestyle{empty}
+I would like to thank Aiden, Brandon and Zhen for their guidance and advice throughout this study. It would have been a much more difficult task without their assistance!
+
+\clearpage
+
+
 \thispagestyle{empty}
 \newpage
 \thispagestyle{empty}
@@ -65,14 +73,19 @@
 
 \chapter{Introduction}
 Computer vision is the task of endowing a computer system with some level of intelligence pertaining to image data. This diverse field covers as broad topics as video tracking, pose estimation, and image restoration; however for this proposal we will consider the task of image classification -- predicting the category of object in an image. \par
-While the interpretation of visual stimuli is considered a simple task for living things, the equivalent is of great difficulty for a computer system. Much progress has been made since the advent of artificial intelligence for computer vision in the 1960s, with techniques evolving from human-engineered to solutions to data-driven learning algorithms. The most significant development in recent times is that of neural networks -- machine learning systems that loosely emulate the behaviour of the biological brain. \par
-Recently, \emph{deep learning} algorithms -- neural networks comprising of many layers of connections -- have had profound success in computer vision tasks, yet a consistent detriment to data-driven systems is that they typically require large volumes of training data in order to adequately learn. Having a system learn from few examples is crucial to building systems viable for real-world scenarios, as the acquisition of large datasets is typically difficult and expensive, making it a prohibitive factor in many cases. In addition to this, the continual usage of neural networks has been fairly restricted due to their inherent incapacity to easily learn new tasks incrementally. A typical neural network trained to predict $n$ classes cannot generalise to an additional class without retraining the entire classifier with all $n+1$ classes. This is due to the phenomenon of catastrophic forgetting. \par
-Although neural networks were heavily inspired by the functioning of the biological brain, a critical difference is that humans learn tasks rapidly after only a few examples, and don't forget old knowledge to make way for new. The limitations of requiring large amounts of data and rapidly forgetting are yet to be resolved, but are a crucial step in the progression to a genuine artificial intelligence. \par
-These two limitations have resulted in a notable amount of attention being given to \emph{few-shot learning}\parencite{maml}\parencite{relationnet} -- learning a new task having seen very few examples; and  \emph{continuous learning}\parencite{lwf}\parencite{ewc}\parencite{hat} -- continuously teaching an artificial intelligence with additional knowledge over time. These have led to the exploration of \emph{meta learning}\parencite{lotsag}\parencite{maml}\parencite{reptile}\parencite{mlwtc}, which is the application of machine learning algorithms to not just learning a task but to the learning \emph{procedure}, hence learning the learning algorithm itself. This technique -- also known as \emph{learning to learn} -- has shown great potential, and has had particular success in few-shot learning\parencite{maml}\parencite{matching}\parencite{mlwtc}. \par
-As these fields have only recently started gaining attention, there are many opportunities for experimentation, and hopefully, success. No research thus far has successfully merged the two to result in a practicable, usable continuous learning system that only requires a few examples to continue learning throughout its life. \par
-We plan to bridge this gap, and produce a system that allows for the repeatable augmentation of an image classification neural network, where showing only a handful of images from a new collection of classes allows the model to sufficiently learn to classify both the new classes, and previously learnt classes. We propose to do this by taking a pre-trained image classification neural network and presenting it some new images; an external neural network will monitor this process and learn to produce the resultant model. \par
-The system will be implemented using the Python interface for Tensorflow\parencite{tensorflow}, Google's open-source computational framework. Furthermore, Deepmind's Sonnet\parencite{sonnet} will be used to provide a simple interface for Tensorflow. \par
-The chosen task is only to consider a fixed neural network architecture; a more difficult challenge would be to devise a system which can be applied to varying architectures. This will be left as an extension for future work. \\ \\
+While the interpretation of visual stimuli is considered a simple task for living things, the equivalent is of great difficulty for a computer system. Much progress has been made since the advent of artificial intelligence for computer vision in the 1960s, with techniques evolving from human-engineered solutions to data-driven learning algorithms. The most significant development in recent times is that of neural networks -- machine learning systems that loosely emulate the behaviour of the biological brain. \par
+Recently, \emph{deep learning} algorithms -- neural networks comprising of many layers of connections -- have had profound success in computer vision tasks, yet a consistent detriment to data-driven systems is that they typically require large volumes of training data in order to adequately learn. Having a system learn from few examples is crucial to building systems viable for real-world scenarios, as the acquisition of large datasets is typically difficult and expensive, making it a prohibitive factor in many cases. In addition to this, the continual usage of neural networks has been fairly restricted due to their inherent incapacity to easily learn new tasks incrementally. A typical neural network trained to predict $n$ classes cannot generalise to an additional class without retraining the entire classifier on all $n+1$ classes. This is due to the phenomenon of catastrophic forgetting. \par
+Although neural networks were heavily inspired by the functioning of the biological brain, a critical difference is that humans learn tasks rapidly after only a few examples, and don't forget old knowledge to make way for new. The limitations of requiring large amounts of data and rapidly forgetting are yet to be resolved, but are a crucial step towards the widespread usage of artificial intelligence. These two limitations have resulted in a notable amount of attention being given to \emph{few-shot learning}\parencite{maml}\parencite{relationnet} -- learning a new task having seen very few examples; and  \emph{continuous learning}\parencite{lwf}\parencite{ewc}\parencite{hat} -- continuously teaching an artificial intelligence with additional knowledge over time. These have led to the exploration of \emph{meta learning}\parencite{lotsag}\parencite{maml}\parencite{reptile}\parencite{mlwtc}, which is the application of machine learning algorithms to not just learning a task but to the learning \emph{procedure}, hence learning the learning algorithm itself. This technique -- also known as \emph{learning to learn} -- has shown great potential, and has had particular success in few-shot learning\parencite{maml}\parencite{matching}\parencite{mlwtc}. \par
+
+No research thus far has successfully merged these two tasks to result in a practicable, usable continuous learning system that only requires a few examples to continue learning throughout its life. We bridge this gap, and present a system that allows for the augmentation of an image classification neural network, where showing only a handful of images from a new collection of classes allows the model to sufficiently learn to classify both the new classes, and previously learnt classes. We do this by taking a pre-trained image classification neural network and presenting it some new images; an external neural network monitors this process and produces a new model. \par
+
+The task is an inherently difficult one, combining two currently unsolved tasks to form a more challenging set of requirements. Continuous learning focuses on the retention of knowledge already present in a set of weights, whereas few-shot learning typically focuses on models that are capable of rapid change. These tasks appear to have contradicting properties, thereby making their overlap rather complex in its nature. Typical gradient-descent neural network algorithms don't succeed at this task due to their inability to retain information or to rapidly re-parametrise a model. \par
+
+We present a meta learning system which exposes a small number of examples from a new set of classes to an existing classifier to compute gradients. These gradients, along with their corresponding weights are given as input to the Meta-Learner, which produces a set of optimal weight-updates as its outputs. The produced model is capable of adequately performing classification across both the original classes as well as those newly-presented. \par
+
+Our solution is $\sim$3x as effective at adapting to new classes from few examples as a naive implementation, and also largely retains original classification performance. The Meta-Learner is capable of producing a model which performs 10\% better on the new classes than on those that it was originally trained on, indicating that it learns a dramatically improved optimisation technique over standard gradient-descent methods. We also introduce a measure of model prediction bias by the name of Batch Prediction Entropy, useful as a diagnostic tool during training. \par
+
+
 We begin in chapter \ref{background:1} with an introduction to computer vision in general, before progressing to more modern and relevant information pertaining to this proposal. In chapter \ref{related:1} we will discuss works related to this task -- and those that could be considered a source of inspiration -- and will consider the benefits and detriments of each. In chapter \ref{problem-definition} we formalise our objective, define some metrics and perform some preliminary investigation. In chapter \ref{methodology} we describe our solution methodology and implementation, followed by our experimental setup in chapter \ref{experimental-setup}. Finally, we explore and discuss our results in chapter \ref{results-chapter} and finish with a conclusion and overview of our algorithm. \par
 
 \chapter{Background} \label{background:1}
@@ -696,7 +709,7 @@ The problem discovered then, is that not only has continuous learning with an ar
 
 
 \chapter{Problem Definition} \label{problem-definition}
-The task is \textit{model augmentation} -- to take a model which has been trained to classify $n$ classes $\bm{X}_S = {X_S^1, X_S^2, ..., X_S^n}$, and using only the model's weights and a \emph{small} number of examples from $m$ disjoint classes $\bm{X}_T = {X_T^1, X_T^2, ..., X_T^m}$, produce a model which can perform well (measured using the equations in section \ref{metrics}, metrics) on the combined set of classes $\bm{X}_S \cup \bm{X}_T$. For example, if we have a source model with the classes $\bm{X}_S = \lbrace apple, banana, carrot \rbrace$, augmenting the model with $\bm{X}_T = \lbrace date, elderberry \rbrace$ would result in a target model with the ability to classify between classes $\bm{X}_S \cup \bm{X}_T = \lbrace apple, banana, carrot, date, elderberry \rbrace$.
+The task is \textit{model augmentation} -- to take a model which has been trained to classify $n$ classes $\bm{X}_S = {X_S^1, X_S^2, ..., X_S^n}$, and using only the model's weights and a \emph{small} number of examples from $m$ disjoint classes $\bm{X}_T = {X_T^1, X_T^2, ..., X_T^m}$, produce a model which can perform well (measured using the equations in section \ref{metrics}) on the combined set of classes $\bm{X}_S \cup \bm{X}_T$. For example, if we have a source model with the classes $\bm{X}_S = \lbrace apple, banana, carrot \rbrace$, augmenting the model with $\bm{X}_T = \lbrace date, elderberry \rbrace$ would result in a target model with the ability to classify between classes $\bm{X}_S \cup \bm{X}_T = \lbrace apple, banana, carrot, date, elderberry \rbrace$.
 Furthermore, the ideal solution would be repeatable, such that a model can be continuously extended throughout its lifetime. \par
 While the relatively recent resurgence of meta-learning techniques has prompted much research in few-shot and continuous learning, no previous works attempt this task precisely. This is largely because there is much to be done in each of these individual domains, with state-of-the-art results surpassed on a very regular basis. That being said, the efficacy of meta-learning techniques is beginning to reach a limit, meaning that more novel applications are able to be considered.	\par
 The previous work that is nearest to the proposed task is \textit{Learning without Forgetting}\parencite{lwf} -- the fact that the loss function incorporates the persistence of old knowledge means that it is a strong contender. As noted however, this technique results in a separate set of class predictors for each added task, meaning that the domain of the input images must be known prior to performing inference. Furthermore, there is much to be gained by applying a meta-learnt system to the task, as carrying information between models allows for more generalised knowledge. An additional benefit is that an episodic learning schema provides opportunity to perform one-shot training. \par
@@ -762,9 +775,9 @@ We will now discuss the specific setup for the task, and the technique by which 
 
 
 \chapter{Methodology} \label{methodology}
-Convolutions have proven useful for computer vision, as local information is sufficient to form an understanding of the relationships between pixel values. We extend that idea to the weights of a network, suggesting that a local view of a network's layers is sufficient to form an understanding of the relationships between weights. Carrying on from this, we build a Meta-Learner which convolves over the weights of a network and its gradients to produce a new set of weights as its output. \par
-Although the task is to take an arbitrary $N_{S}$-way classifier and extend that to be a $(N_{S}+N_{T})$-way classifier, we will focus on a specific number of classes, where $N_{S} = N_{T} = 5$; so as to minimise the amount of training time. Many variants of the solution are explored in section \ref{approaches}, but we will begin by describing the general design of the solution, which forms the basis of all experiments. \par
-
+Convolutions have proven useful for computer vision, as local information is sufficient to form an understanding of the relationships between pixel values. We present a novel solution that applies a convolutional network to the parameters of a neural network, suggesting that a local view of a network's layers is sufficient to form an understanding of the relationships between weights. We build a Meta-Learner which convolves over the weights and gradients of a network and produce a new set of weights as its outputs. Our solution merges the tasks of few-shot learning and continuous learning -- an intersection that is largely unexplored -- adjusting the parameters of a neural network using few examples from a new set of classes such that it can classify these new classes also. \par
+Although the task is to take an arbitrary $N_{S}$-way classifier and extend that to be a $(N_{S}+N_{T})$-way classifier, we will focus on a specific number of classes, where $N_{S} = N_{T} = 5$; so as to minimise the amount of training time. \par
+We present a solution which uses standard neural network components typically used for computer vision to rapidly re-parametrise a classification model to be performant on an extended set of classes. At a high level, our algorithm computes gradients for a model using examples from a new set of classes, takes these gradients and the weights they pertain to as inputs and produces a set of ideal updates to apply to the model for the combined classification task. Many variants of the solution are explored in section \ref{approaches}, but we will begin by describing the general design of the solution, which forms the basis of all experiments. \par
 
 \section{Source Model Setup} \label{commonalities}
 
@@ -930,7 +943,7 @@ With such a complex system, there are numerous design choices and opportunities 
 \subsection{Dataset Complexity}
 As will be discussed in section \ref{results-chapter}, the complexity of the dataset play a role in the success of this algorithm. We explore this with three different datasets (described in section \ref{datasets}), each with varying degrees of success. This is a problem for future work (discussed in section \ref{future-works}), but suitably serves our purposes. \par
 
-\subsection{Weight Initialisation}
+\subsection{Weight Initialisation} \label{weight-init}
 Weight initialisation has long been considered of crucial importance with regards to the successful training of a neural network \parencite{heinit}\parencite{weightinit}. As such, consideration was given to the initialisation of the new weights used for target-class predictions. \par
 The initialisation of a typical neural network strongly influences the model's performance, and this effect is amplified in a complex solution such as ours. It is important that -- at the very least -- the magnitude of the new weights is similar to the existing weights in the same layer; a large disparity between the scale of weights within the same layer typically introduces a disparity in the usage of features, where certain weights ``outvote'' others. It is common to employ $L_2$ weight regularisation in neural networks to enforce this property, but this is beyond the scope of our discussion. Due to the significance of weight initialisation, we experiment with the following alternative schemes:
 
@@ -1073,38 +1086,40 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 \chapter{Results} \label{results-chapter}
 \section{BLOCKS}
 Experimentation began with the BLOCKS dataset, with the expectation that learning a classification model parametrisation is easier on this than the other datasets due to its simpler features. This dataset was designed specifically to be an easier task than any public datasets, thus allowing us to build a proof-of-concept system before employing it on more difficult datasets. \par
-We trained a number of Meta-Learner variants on BLOCKS to validate the feasibility of our algorithm and obtained results that indicate successful training. To aide in the stability and speed of training, each experiment was performed using only the source model output head as inputs to the Meta-Learner and used copy-random initialisation. To facilitate this, we utilised two-phase pre-training with the 39 held-out BLOCKS classes. The experiments produced positive results, indicating that the Meta-Learner architecture and algorithm has the capacity to efficiently augment a source model and extend it to a set of previously-unseen classes. Table \ref{tab:blocks-scores} shows the scores for these experiments, where there are minor variations in retention for the differing model output variants. Acquisition, however, indicates that producing gates and deltas for each parameter best aides the Meta-Learner in target class performance. \par
+We trained a number of Meta-Learner variants on BLOCKS to validate the feasibility of our algorithm and obtained results that indicate successful training. To aide in the stability and speed of training, each experiment was performed using only the source model output head as inputs to the Meta-Learner and used copy-random initialisation. To facilitate this, we utilised two-phase pre-training with the 39 held-out BLOCKS classes. The experiments produced positive results, indicating that the Meta-Learner architecture and algorithm has the capacity to efficiently augment a source model and extend it to a set of previously-unseen classes. \par
+Results are reported in table \ref{tab:blocks-scores}, where we present the accuracy, retention and acquisition for these experiments as described in section \ref{metrics}. In addition, the same collection of source models were augmented and trained on the 5-shot task with a standard SGD optimiser to form an upper-bound of performance for naive model augmentation. We trained 50 models with learning rates in the range of $[10^{-5}, 1]$, training for 1 step, and for 5 steps. The highest target score averaged over the 50 models is reported; source score is not reported due to catastrophic forgetting. \\
+There are minor variations in retention for the differing model output variants. Acquisition, however, indicates that producing gates and deltas for each parameter best aides the Meta-Learner in target class performance. \par
 
 \begin{table}[h] \label{tab:blocks-scores}
 	\centering
 	\begin{tabular}{|l|l|l|l|l|l|l|}
 		\hline
-		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & Source score   & Target score   & Retention      & Acquisition    \\ \hline
+		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & \begin{tabular}{@{}l@{}}Source \\ Precision\end{tabular} & \begin{tabular}{@{}l@{}}Target \\ Precision\end{tabular} & Retention      & Acquisition    \\ \hhline{|=|=|=|=|=|=|=|}		
+		Naive model & -- & -- & -- & 0.4 & -- & 0.406 \\ \hhline{|=|=|=|=|=|=|=|}
 		Head                & Copy-Random    & Deltas               & \textbf{0.712} & 0.668          & \textbf{0.722} & 0.677          \\ \hline
 		Head                & Copy-Random    & Gates + Deltas       & 0.708          & \textbf{0.730} & 0.718          & \textbf{0.740} \\ \hline
 		Head                & Copy-Random    & Gates + Tanh Deltas  & 0.692          & 0.680          & 0.702          & 0.690          \\ \hline
 	\end{tabular}
-	\caption{Results of models trained on BLOCKS; the highest scores in bold.}
+	\caption{Results of models trained on BLOCKS as defined in section \ref{metrics}; the highest scores in bold.}
 \end{table}
 
-These results suggest that while the outputs certainly do affect the performance of the target model, retention appears to be much more stable than acquisition. Retention reflects what is in itself a more stable task, as the Meta-Learner must essentially act as a modified auto-encoder, where ideal performance is to learn a 1-to-1 mapping from inputs to outputs. Acquisition is a less stable task, as it requires that the Meta-Learner adequately applies the gradients given as inputs, which is more difficult. \par
+These results suggest that while the outputs certainly do affect the performance of the target model, retention appears to be much more stable than acquisition. Retention measure's the ability of a model to retain the classification accuracy of the source classes, and therefore reflects what is in itself a more stable task, as the Meta-Learner must essentially act as a modified auto-encoder where ideal performance is to learn a 1-to-1 mapping from inputs to outputs. Acquisition is a less stable task, as it requires that the Meta-Learner adequately applies the gradients given as inputs to learn to classify between unseen classes, which is more difficult. \par
 It is worth noting that there appears to be a trade-off between retention and acquisition, and with these results indicating success, we move to the public dataset Omniglot in hopes of replicating the performance, and to further explore this trade-off.
 
 
 \section{Omniglot}
-The Omniglot public dataset was the main focus of experimentation, as it is an easier task than CIFAR100, but is recognised throughout the meta-learning community as a dataset representative of real computer-vision tasks. The visual features found in Omniglot are sufficiently complex to be challenging -- especially when contrasted with BLOCKS, due to the addition of rounded edges and arbitrarily-angled lines among others. \par
-We first applied the same Meta-Learner variant to this dataset, passing the source model head as inputs, using copy-random initialisation, and with the Meta-Learner producing a gate and a delta per weight. This yielded promising results, with retention and acquisition both indicating success (table \ref{tab:omniglot-results}). With successful results on dataset, we explore Meta-Learner variants and their effects on performance. \par
+The Omniglot\parencite{omniglot} public dataset was the main focus of experimentation, as it is an easier task than CIFAR100, but is recognised throughout the meta-learning community as a dataset representative of real computer-vision tasks. The visual features found in Omniglot are sufficiently complex to be challenging -- especially when contrasted with BLOCKS, due to the addition of rounded edges and arbitrarily-angled lines among others. \par
+We first applied the same Meta-Learner variant to this dataset, passing the source model head as inputs, using copy-random initialisation, and with the Meta-Learner producing a gate and a delta per weight. This yielded promising results, with retention and acquisition both indicating success (table \ref{tab:omniglot-results}). As with BLOCKS, we perform the same naive model augmentation on Omniglot. Our solution performs substantially better than the naive solution, indicating that the Meta-Learner leverages additional information due to the episodic meta learning training environment. With successful results indicated on this dataset, we explore Meta-Learner variants and their effects on performance. \par
 
 \subsection{Meta-Learner Inputs}
-We begin our experiments by determining the inputs to the model that provide the best results, to serve as the standard inputs for the remainder of experimentation. As shown in table \ref{tab:omniglot-results}, switching from passing only the source model head as inputs to passing the source model body and head significantly improves performance, which is most pronounced in the retention, where there is an increase of $0.8$. 
-We therefore give the entire source model as inputs to the Meta-Learner for the remainder of our experiments. 
+We begin our experiments by determining the inputs to the model that provide the best results, to serve as the standard inputs for the remainder of experimentation. As shown in table \ref{tab:omniglot-results}, switching from passing only the source model head as inputs to passing the source model body and head significantly improves performance, which is most pronounced in the retention, where there is an increase of $0.8$. This allows the Meta-Learner to not only gain a larger view of the source model, but also to re-parametrise the body of the model, allowing for the adjustment of feature-extractors as necessary; conversely, passing only the head of the model enforces a fixed feature extractor. We therefore give the entire source model as inputs to the Meta-Learner for the remainder of our experiments. 
 
 \subsection{Meta-Learner Outputs}
 \subsubsection{Deltas}
 In its most basic form, the Meta-Learner can act as a replacement for a standard optimizer, simply updating the weights by adding a delta as shown in equation \ref{eqn-delta-updates}. Table \ref{tab:omniglot-results} shows that this gives sub-par performance when compared to the variant with the ability to gate existing weights. \par
-For the target model output layer, we plotted the scale of the produced deltas with respect to the pre-existing weights to gain some understanding of how the two components interact (figure \ref{fig:deltascale:1}). Equation \ref{delta-rule} shows this calculation for source weights/deltas; it is similarly calculated for target weights/deltas.
+For the target model output layer, we plotted the scale of the produced deltas with respect to the pre-existing weights to gain some understanding of how the two components interact (figure \ref{fig:deltascale:1}). A score of 1 indicates that the average magnitude of the deltas is equal to that of the existing weights, and a score of 2 indicates that it is twice as large. Equation \ref{delta-rule} shows this calculation for source weights/deltas; it is similarly calculated for target weights/deltas.
 \begin{align} \label{delta-rule}
-\ddfrac{\frac{1}{n}\sum_{i=1}^{n}|\theta_{S,i}|}{\frac{1}{n}\sum_{i=1}^{n}|\Delta_{M_{S,i}}|}
+\ddfrac{\frac{1}{n}\sum_{i=1}^{n}|\Delta_{M_{S,i}}|}{\frac{1}{n}\sum_{i=1}^{n}|\theta_{S,i}|}
 \end{align}
 Interestingly, the deltas far outweigh the scale of the weights -- by an order of magnitude. It would be reasonable to expect that the deltas are in the same order of magnitude as the weights, as this would allow for some of the pre-existing weights to simply be ``passed-through'' unchanged as required. There appears to be no difference in scale between either the deltas that correspond to the source class output weights and those that correspond to the target class output weights. This means that the Meta-Learner is effectively disregarding the existing weights and producing a new set of weights, as the sheer magnitude of the deltas would far outweigh any contribution from the pre-existing weights.
 
@@ -1112,7 +1127,7 @@ Interestingly, the deltas far outweigh the scale of the weights -- by an order o
 	\centering
 	\includegraphics[width=16cm]{deltascale}
 	\caption{Delta scales}
-	The scale of the produced deltas with respect to the corresponding weights
+	The scale of the produced deltas with respect to the corresponding weights as detailed in equation \ref{delta-rule}.
 	\label{fig:deltascale:1}
 \end{figure}
 
@@ -1123,7 +1138,8 @@ The gates tend to be less than 0.5 for both the source and target classes, indic
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=14cm]{gate-distrib}
-	\caption{Distribution of gate values for the output heads, separated into source and target classes. Values from 0 to 1 indicates the Meta-Learner's inclination to forget or retain existing weights.}
+	\caption{Distribution of gate values for the output heads}
+	Gates are separated into source and target classes. Values from 0 to 1 indicates the Meta-Learner's inclination to forget or retain existing weights.
 	\label{fig:gate-distrib:1}
 \end{figure}
 
@@ -1133,30 +1149,33 @@ We observed that this restriction on delta magnitude led to better utilisation o
 
 \subsection{Weight Initialisation}
 \subsubsection{Random Initialisation}
-The initialisation of the weights in the target class output head is critical, and as such, we explored three weight initialisation schemes. Random initialisation -- while commonplace in traditional deep learning -- leads to a degradation in performance for our task. Initialisation in this manner introduces a stochastic element to the inputs, resulting in gates tending towards zero in order to negate this source of noise. As the Meta-Learner has difficulty distinguishing source class weights from target class weights, it learns an aggressive gating strategy to ignore the introduced noise and discards important source class knowledge embedded in the existing weights.
+The initialisation of the weights in the target class output head is critical, and as such, we explored three weight initialisation schemes. Random initialisation -- while commonplace in traditional deep learning -- leads to a degradation in performance for our task. Initialisation in this manner introduces a stochastic element to the inputs, as the Meta-Learner will be given different inputs (albeit from the same distribution) every time, resulting in gates tending towards zero to negate this source of noise. \par
+As the Meta-Learner has difficulty distinguishing source class weights from target class weights, it learns an aggressive gating strategy to ignore the introduced noise and discards important source class knowledge embedded in the existing weights. This is reflected in figure \ref{fig:gate-distrib:1}, where the gates for both source and targets both have a mean value close to zero. This is also shown in table \ref{tab:omniglot-results}, where the source class performance is poor.
 
 \subsubsection{Copy-Random Initialisation}
-It is with this idea of introduced-stochasticity and the corresponding decrease in performance that we introduce copy-random initialisation. By sampling the target class output weights only once and repeatedly using them for each model initialisation, the Meta-Learner does not need to counteract the introduction of newly-sampled random inputs for each episode. Our results indicate that this does in fact aid performance on the source classes over random initialisation -- it is due to this that copy-random initialisation is used as the default initialisation for experiments when varying other aspects.
+To remove the stochasticity in target weight initialisation, we introduce copy-random initialisation. By sampling the target class output weights only once and repeatedly using them for each model initialisation, the Meta-Learner does not need to counteract the introduction of newly-sampled random inputs for each episode. Our results indicate that this does in fact aid performance on the source classes over random initialisation. The results in table \ref{tab:omniglot-results} indicate that this boost in source class performance does come with a decrease in target class performance, though this is margin, so copy-random initialisation is used as the default initialisation for experiments when varying other aspects.
 
 \subsubsection{Copy Initialisation}
-The copying of weights from the source class output head into the target class output head yielded surprising results, as it achieved the highest average score of all variants. We infer that it works well on Omniglot due to the generality of features found in the dataset. As all classes in Omniglot are handwritten characters, the features they are composed of are not only simplistic, but transferable. The domain is very narrow, and therefore the characteristics of edges, lines, curves etc. are similar across its entirety. This allows a neural network to take advantage by sharing these general features across classes. \par
+We copy weights from the source class output head into the target class output head as described in section \ref{weight-init}. This yields surprising results, as it achieves the highest average score of all variants (\ref{tab:omniglot-results}). We infer that it works well on Omniglot due to the generality of features found in the dataset. As all classes in Omniglot are handwritten characters, the features they are composed of are not only simplistic, but transferable. The domain is very narrow, and therefore the characteristics of edges, lines, curves etc. are similar across its entirety. This allows a neural network to take advantage by sharing these general features across classes. \par
 If we consider the features found in a neural network trained on CIFAR100 (which has classes as varied as ``bus'' and ``dolphin'') the model typically extracts high-level features such as wheels and eyes\parencite{deepvis}. Therefore the output layer of a neural network -- which performs the mapping between these features and classes -- will have large positive weights mapping $wheel\rightarrow bus$ and $eye\rightarrow dolphin$, and large negative weights mapping $eye\rightarrow bus$ and $wheel\rightarrow dolphin$. With a copy initialisation scheme for a varied dataset such as this, the Meta-Learner would essentially need to ``undo'' this in order to re-map to the new target classes. A model for a narrow-domain dataset such as Omniglot would not have such disparity in feature importance between classes, and therefore requires less work to re-map effectively. \par
 Our results suggest that for Omniglot, copy initialisation acts somewhat as a form of pre-training much like transfer learning. However, we expect that this initialisation scheme would not be as effective as copy-random initialisation on a larger-domain dataset.
 
 
-\begin{table}[h!] \label{tab:omniglot-results}
+\begin{table}[h!] 
 	\centering
 	\begin{tabular}{|l|l|l|l|l|l|l|}
 		\hline
-		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & Source score   & Target score   & Retention      & Acquisition    \\ \hline
-		Head                & Copy-Random    & Gates + Deltas       & 0.619          & 0.802          & 0.628          & 0.813          \\ \hline
-		Body + Head         & Copy-Random    & Gates + Deltas       & 0.692          & 0.832          & 0.702          & 0.844          \\ \hline
-		Body + Head         & Copy-Random    & Deltas               & 0.613          & 0.646          & 0.622          & 0.655          \\ \hline
-		Body + Head         & Copy-Random    & Gates + Tanh Deltas  & 0.582          & 0.718          & 0.590          & 0.728          \\ \hline
-		Body + Head         & Copy           & Gates + Deltas       & \textbf{0.693} & 0.835          & \textbf{0.703} & 0.846          \\ \hline
-		Body + Head         & Rand           & Gates + Deltas       & 0.586          & \textbf{0.863} & 0.594          & \textbf{0.875} \\ \hline
+		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & \begin{tabular}{@{}l@{}}Source \\ Precision\end{tabular} & \begin{tabular}{@{}l@{}}Target \\ Precision\end{tabular} & Retention      & Acquisition    \\ \hhline{|=|=|=|=|=|=|=|}
+		Naive model & -- & -- & -- & 0.292 & -- & 0.373 \\ \hhline{|=|=|=|=|=|=|=|}
+		Head        & Copy-Random & Gates + Deltas      & 0.619          & 0.802          & 0.790          & 1.023          \\ \hline
+		Body + Head & Copy-Random & Gates + Deltas      & 0.692          & 0.832          & 0.883          & 1.062          \\ \hline
+		Body + Head & Copy-Random & Deltas              & 0.613          & 0.646          & 0.783          & 0.825          \\ \hline
+		Body + Head & Copy-Random & Gates + Tanh Deltas & 0.582          & 0.718          & 0.743          & 0.916          \\ \hline
+		Body + Head & Copy        & Gates + Deltas      & \textbf{0.693} & 0.835          & \textbf{0.885} & 1.065          \\ \hline
+		Body + Head & Rand        & Gates + Deltas      & 0.586          & \textbf{0.863} & 0.748          & \textbf{1.101} \\ \hline
 	\end{tabular}
-	\caption{Results of models trained on Omniglot; the highest scores in bold.}
+	\caption{Results of models trained on Omniglot as defined in section \ref{metrics}; the highest scores in bold.}
+	\label{tab:omniglot-results}
 \end{table}
 
 \section{CIFAR100}
@@ -1165,7 +1184,7 @@ Applying the Meta-Learner to the task of model augmentation using CIFAR100 prove
 	\centering
 	\includegraphics[width=13cm]{cifaraccuracy}
 	\caption{Summed batch prediction scores}
-	Comparison of source/target classification scores on CIFAR100
+	Comparison of source/target classification accuracy on CIFAR100
 	\label{fig:cifaraccuracy:1}
 \end{figure}
 
@@ -1175,12 +1194,13 @@ In the context of information theory, entropy is a measure of the rate of inform
 H(X) &= \sum_{i=1}^{n}P(x_i) log(P(x_i)) \label{entropyfunc}
 \end{align}
 
-It is typically desired that the entropy of a predictor is large, as this means that the system is producing a large amount of information with each prediction -- corresponding to high-confidence predictions. However, considering an entire batch of predictions, if we are to sum the raw outputs from each example into a single discrete probability distribution as shown in figure \ref{fig:totalbatchpredscores:1}, we would hope that each class has a similar total magnitude (assuming the batch contains an identical number of elements per class); a difference in magnitude indicates a disparity in class predictions. We therefore developed Batch Prediction Entropy (BPE) to give a quantitative measure of class prediction disparity, and to provide an indicator of class exclusivity. BPE is calculated as the entropy of the sum of the raw predictions of an entire batch of examples. \par
+It is typically desired that the entropy of a predictor is large, as this means that the system is producing a large amount of information with each prediction -- corresponding to high-confidence predictions. However, considering an entire batch of predictions, if we are to sum the raw outputs from each example into a single discrete probability distribution as shown in figure \ref{fig:totalbatchpredscores:1}, we would hope that each class has a similar total magnitude (assuming the batch contains an identical number of elements per class); a difference in magnitude indicates a disparity in class predictions. We therefore developed Batch Prediction Entropy (BPE) to give a quantitative measure of class prediction disparity, and to provide an indicator of class exclusivity. BPE is calculated as the entropy of the sum of the raw predictions of an entire batch of examples. 
+
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=13cm]{totalbatchpredscores}
-	\caption{Summed batch prediction scores}
-	The sum of raw prediction scores across an entire batch should ideally be of similar magnitudes
+	\caption{Example summed raw prediction values}
+	The sum of raw prediction values across an entire batch should ideally be of similar magnitudes
 	\label{fig:totalbatchpredscores:1}
 \end{figure}
 
@@ -1227,7 +1247,7 @@ For this, we performed two-phase pre-training as described in section \ref{pre-t
 
 
 \section{Discussion}
-As a point of comparison, the same collection of Omniglot models were augmented and trained on the 5-shot task with a standard SGD optimiser. This was to form an upper-bound of performance for naive model augmentation. We trained 50 models with learning rates in the range of $[10^{-5}, 1]$, training for 1 step, and for 5 steps. The highest score (averaged over the 50 models) was found to be 29.239\%, which corresponds to acquisition of 0.297. This indicates that our most-successful technique, with an acquisition of 0.875, is $\sim$3x as effective at adapting to new classes from few examples as a non-meta-learning technique. \par
+Our comparison to the naive solution on Omniglot indicates that our most-successful technique -- with an acquisition of 0.875 -- is $\sim$3x as effective at adapting to new classes from few examples as a non-meta-learning technique. The highest acquisition of 1.101 also demonstrates that our Meta-Learner is a very efficient learner, as it can generate model parameters in a single pass that perform $\sim$10\% better than the source model. \par
 We also compare performance to the 5-shot meta-learning techniques discussed in chapter \ref{related:1}, and find that when compared the best-performer on Omniglot (MAML\parencite{maml}), our model is 83.54\% as effective at adapting to new classes. We do however, have the added constraint that we must remain performant on the source classes -- a restriction that MAML does not need to adhere to. While not performing with such success as specific few-shot meta-learning systems, our solution performs very well for being combined with the additional task of continuous learning. \par
 
 
