@@ -46,7 +46,7 @@
 
   \textbf{Supervisor} \\
   \textit{Zhen He} \\
-  Professor \\
+  Associate Professor \\
   Department of Computer Science \\
   La Trobe University \\
 
@@ -57,7 +57,7 @@
 
 \chapter*{Acknowledgements}
 \thispagestyle{empty}
-I would like to thank Aiden, Brandon and Zhen for their guidance and advice throughout this study. It would have been a much more difficult task without their assistance!
+I would like to thank Aiden, Brandon and Zhen for their guidance and advice throughout this study. It would have been a much more difficult task without their assistance.
 
 \clearpage
 
@@ -71,12 +71,17 @@ I would like to thank Aiden, Brandon and Zhen for their guidance and advice thro
 \listoffigures
 \newpage
 
+\chapter*{Abstract}
+
+Continuous learning is the task of mitigating a neural network's tendency to discard previously learnt knowledge while learning a new task. Few-shot learning deals with acquiring maximal knowledge from limited samples in a problem domain. We explore the combination of these two tasks -- Few-Shot Continuous Learning (FSCL) -- and present a novel meta learning solution which rapidly re-parametrises a neural network such that it performs well on both the original, and new tasks. We show that our Meta-Learner performs well on a public dataset, obtaining results of $\sim$3x that of a standard transfer-learning solution.
+
+
 \chapter{Introduction}
 Computer vision is the task of endowing a computer system with some level of intelligence pertaining to image data. This diverse field covers as broad topics as video tracking, pose estimation, and image restoration; however for this proposal we will consider the task of image classification -- predicting the category of object in an image. \par
 While the interpretation of visual stimuli is considered a simple task for living things, the equivalent is of great difficulty for a computer system. Much progress has been made since the advent of artificial intelligence for computer vision in the 1960s, with techniques evolving from human-engineered solutions to data-driven learning algorithms. The most significant development in recent times is that of neural networks -- machine learning systems that loosely emulate the behaviour of the biological brain. \par
-Recently, \emph{deep learning} algorithms -- neural networks comprising of many layers of connections -- have had profound success in computer vision tasks, yet a consistent detriment to data-driven systems is that they typically require large volumes of training data in order to adequately learn. Having a system learn from few examples is crucial to building systems viable for real-world scenarios, as the acquisition of large datasets is typically difficult and expensive, making it a prohibitive factor in many cases. In addition to this, the continual usage of neural networks has been fairly restricted due to their inherent incapacity to easily learn new tasks incrementally. A typical neural network trained to predict $n$ classes cannot generalise to an additional class without retraining the entire classifier on all $n+1$ classes. This is due to the phenomenon of catastrophic forgetting. \par
+Recently, \emph{deep learning} algorithms -- neural networks comprising of many layers of connections -- have had profound success in computer vision tasks, yet a consistent detriment to data-driven systems is that they typically require large volumes of training data in order to adequately learn. Having a system learn from few examples is crucial to building systems viable for real-world scenarios, as the acquisition of large datasets is typically difficult and expensive, making it a prohibitive factor in many cases. In addition to this, the continual usage of neural networks has been fairly restricted due to their inherent incapacity to easily learn new tasks incrementally. A typical neural network trained to predict $n$ classes cannot generalise to an additional class without retraining the entire classifier on all $n+1$ classes. This is due to the phenomenon of \textit{catastrophic forgetting}. \par
 Although neural networks were heavily inspired by the functioning of the biological brain, a critical difference is that humans learn tasks rapidly after only a few examples, and don't forget old knowledge to make way for new. The limitations of requiring large amounts of data and rapidly forgetting are yet to be resolved, but are a crucial step towards the widespread usage of artificial intelligence. These two limitations have resulted in a notable amount of attention being given to \emph{few-shot learning}\parencite{maml}\parencite{relationnet} -- learning a new task having seen very few examples; and  \emph{continuous learning}\parencite{lwf}\parencite{ewc}\parencite{hat} -- continuously teaching an artificial intelligence with additional knowledge over time. 
-Meta learning is the application of machine learning algorithms to not just learning a task but to the learning \emph{procedure}, hence learning the learning algorithm itself. This technique -- also known as \emph{learning to learn} -- has been used to solve these problems in the recent past\parencite{lotsag}\parencite{maml}\parencite{reptile}\parencite{mlwtc}, and has had particular success in few-shot learning\parencite{maml}\parencite{matching}\parencite{mlwtc}. \par
+Meta learning is the application of machine learning algorithms to not just learning a task but to the learning \emph{procedure}, hence learning the learning algorithm itself. This technique -- also known as \emph{learning to learn} -- has been used to solve few-shot and continuous learning tasks in the recent past\parencite{lotsag}\parencite{maml}\parencite{reptile}\parencite{mlwtc}, and has had particular success in few-shot learning\parencite{maml}\parencite{matching}\parencite{mlwtc}. \par
 
 Although few-shot and continuous learning have been studied separately, no research thus far has successfully merged the two tasks to result in a practicable, usable continuous learning system that only requires a few examples to continue learning throughout its life. We bridge this gap, and present a system that allows for the Few-Shot Continuous Learning (FSCL) of an image classification neural network, where showing only a handful of images from a new collection of classes allows the model to sufficiently learn to classify both the new classes, and previously learnt classes. We do this by taking a pre-trained image classification neural network and presenting it some new images; an external neural network monitors this process and produces a new model. \par
 
@@ -84,14 +89,14 @@ The task is an inherently difficult one, combining two currently unsolved tasks 
 
 We present a meta learning system which exposes a small number of examples from a new set of classes to an existing classifier to compute gradients. These gradients, along with their corresponding weights are given as input to the Meta-Learner, which produces a set of optimal weight-updates as its outputs. The produced model is capable of adequately performing classification across both the original classes as well as those newly-presented. \par
 
-On the Omniglot\parencite{omniglot} dataset, our solution is $\sim$3x as effective at adapting to new classes from few examples as a baseline transfer learning solution, and also largely retains original classification performance. The Meta-Learner is capable of producing a model which performs 10\% better on the new classes than on those that it was originally trained on, indicating that it learns a dramatically improved optimisation technique over standard gradient-descent methods.  \\ \\
+On the popular few-shot Omniglot\parencite{omniglot} dataset, our solution is $\sim$3x as effective at adapting to new classes from few examples as a baseline transfer learning solution, and also largely retains original classification performance. The Meta-Learner is capable of producing a model which performs 10\% better on the new classes than on those that it was originally trained on, indicating that it learns a dramatically improved optimisation technique over standard gradient-descent methods.  \\ \\
 
-In the space of continuous and few-shot meta learning, we:
+In this thesis we make the following key contributions:
 \begin{enumerate}
-	\item Introduce the new important task of Few-Shot Continuous Learning (FSCL)
-	\item Demonstrate a meta learning based approach can outperform a baseline transfer learning implementation
-	\item Provide the first optimisation based meta learner that uses convolutions to produce the weight updates
-	\item Introduce the new metrics Acquisition and Retention as a means of measuring continuous learning performance, as well as Batch Prediction Entropy, a measure of model prediction bias that's useful as a diagnostic tool during training.
+	\item Introduced the new important task of Few-Shot Continuous Learning (FSCL). The FSCL problem has not been previously identified in the literature yet it is a task that humans perform everyday.
+	\item Demonstrated a meta learning based approach for solving the FSCL problem which can outperform a baseline transfer learning implementation. The method is able to simultaneously learn new concepts as well as avoid catastrophic forgetting.
+	\item Provided the first optimisation based meta learner that uses convolutions to produce the weight updates.
+	\item Introduced the new metrics Acquisition and Retention as a means of measuring continuous learning performance, as well as Batch Prediction Entropy, a measure of model prediction bias that's useful as a diagnostic tool during training.
 \end{enumerate}
 
 
@@ -1094,7 +1099,7 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 
 
 \chapter{Results} \label{results-chapter}
-For comparison in each of the following experiments, we describe a \textbf{baseline transfer learning solution}, which is constructed in the following manner:
+For comparison in each of the following experiments, we describe a \textbf{Baseline Transfer Learning} procedure, which is performed in the following manner:
 \begin{enumerate}
 	\item Take the same source models as used in the related experiment and add additional output weights for target class predictions.
 	\item Perform 5-shot optimisation with a standard SGD optimiser, with a learning rate search in $[10^{-5}, 1]$, training for 1 step, and for 5 steps.
@@ -1105,7 +1110,7 @@ For comparison in each of the following experiments, we describe a \textbf{basel
 Experimentation began with the BLOCKS dataset, with the expectation that learning a classification model parametrisation is easier on this than the other datasets due to its simpler features. This dataset was designed specifically to be an easier task than any public datasets, thus allowing us to build a proof-of-concept system before employing it on more difficult datasets. \par
 We trained a number of Meta-Learner variants on BLOCKS to validate the feasibility of our algorithm and obtained results that indicate successful training. To aide in the stability and speed of training, each experiment was performed using only the source model output head as inputs to the Meta-Learner and used copy-random initialisation. To facilitate this, we utilised two-phase pre-training with the 39 held-out BLOCKS classes. The experiments produced positive results, indicating that the Meta-Learner architecture and algorithm has the capacity to efficiently augment a source model and extend it to a set of previously-unseen classes. \par
 Results are reported in table \ref{tab:blocks-scores}, where we present the accuracy, retention and acquisition for these experiments as described in section \ref{metrics}. 
-There are minor variations in retention for the differing model output variants. Acquisition, however, indicates that producing gates and deltas for each parameter best aides the Meta-Learner in target class performance. Our solution yields significantly higher acquisition than the transfer learning implementation, as the episodic training procedure allows for more our Meta-Learner to learn weight update strategies that are consistent over a collection of models, thus leveraging more information than is otherwise available in a single training step. In addition, our retention is vastly greater than that of the transfer learning solution, indicating that we largely mitigate catastrophic forgetting. \par
+There are minor variations in retention (ability to retain precision on the source classes) for the differing model output variants. Acquisition (ability to predict target classes precisely), however, indicates that producing gates and deltas for each parameter best aides the Meta-Learner in target class performance. Our solution yields significantly higher acquisition than the transfer learning implementation, as the episodic training procedure allows for more our Meta-Learner to learn weight update strategies that are consistent over a collection of models, thus leveraging more information than is otherwise available in a single training step. In addition, our algorithm allows for an understanding of pre-learnt knowledge embedded into the weights and gradients, and is shown by our retention being vastly greater than that of the transfer learning solution, indicating that we largely mitigate the catastrophic forgetting experienced by transfer learning. \par
 
 \begin{table}[h] \label{tab:blocks-scores}
 	\centering
@@ -1113,7 +1118,7 @@ There are minor variations in retention for the differing model output variants.
 		\hline
 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & \begin{tabular}{@{}l@{}}Source \\ Precision\end{tabular} & \begin{tabular}{@{}l@{}}Target \\ Precision\end{tabular} & Retention      & Acquisition    \\ \hhline{|=|=|=|=|=|=|=|}		
 
-		Transfer learning & -- & -- & 0.044 & 0.406 & 0.045 & 0.406 \\ \hhline{|=|=|=|=|=|=|=|}
+		\begin{tabular}{@{}l@{}}Baseline \\ Transfer Learning\end{tabular} & -- & -- & 0.044 & 0.406 & 0.045 & 0.406 \\ \hhline{|=|=|=|=|=|=|=|}
 		Head                & Copy-Random    & Deltas               & \textbf{0.712} & 0.668          & \textbf{0.722} & 0.677          \\ \hline
 		Head                & Copy-Random    & Gates + Deltas       & 0.708          & \textbf{0.730} & 0.718          & \textbf{0.740} \\ \hline
 		Head                & Copy-Random    & Gates + Tanh Deltas  & 0.692          & 0.680          & 0.702          & 0.690          \\ \hline
@@ -1184,7 +1189,7 @@ Our results suggest that for Omniglot, copy initialisation acts somewhat as a fo
 	\begin{tabular}{|l|l|l|l|l|l|l|}
 		\hline
 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Inputs\end{tabular}  & Initialisation & 		\begin{tabular}{@{}l@{}}Meta-Learner \\ Outputs\end{tabular} & \begin{tabular}{@{}l@{}}Source \\ Precision\end{tabular} & \begin{tabular}{@{}l@{}}Target \\ Precision\end{tabular} & Retention      & Acquisition    \\ \hhline{|=|=|=|=|=|=|=|}
-		Transfer learning & -- & -- & 0.003 & 0.300 & 0.004 & 0.383 \\ \hhline{|=|=|=|=|=|=|=|}
+		\begin{tabular}{@{}l@{}}Baseline \\ Transfer Learning\end{tabular} & -- & -- & 0.003 & 0.300 & 0.004 & 0.383 \\ \hhline{|=|=|=|=|=|=|=|}
 		Head        & Copy-Random & Gates + Deltas      & 0.619          & 0.802          & 0.790          & 1.023          \\ \hline
 		Body + Head & Copy-Random & Gates + Deltas      & 0.692          & 0.832          & 0.883          & 1.062          \\ \hline
 		Body + Head & Copy-Random & Deltas              & 0.613          & 0.646          & 0.783          & 0.825          \\ \hline
