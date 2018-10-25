@@ -72,8 +72,10 @@ I would like to thank Aiden, Brandon and Zhen for their guidance and advice thro
 \newpage
 
 \chapter*{Abstract}
+Continuous learning is the task of mitigating a neural network's tendency to discard previously learnt knowledge while learning a new task. Few-shot learning deals with acquiring maximal knowledge from limited samples in a problem domain. Despite the fact that humans can perform both tasks simultaneously, no prior studies have tried to solve both problems at once. This thesis is the first to tackle these two problems simultaneously. We name this the Few-Shot Continuous Learning (FSCL) problem. \par
+We present a novel meta learning solution to solve FSCL, which rapidly re-parametrises a neural network such that it performs well on both the original, and new tasks. Our optimisation based Meta-Learner is the first to use convolutions to learn a mapping from weights and gradients to new network parameters. This solution performs well on a public dataset, obtaining results of $\sim$3x that of a baseline transfer-learning solution. This shows that our convolution based meta learner is able to gain meaningful understanding of a network's parametrisation by using just locally aggregated information obtained from the convolutions. The results also show that our method is able to avoid the common problem of catastrophic forgetting when presented with additional classes to learn while the transfer learning solution is not able to avoid the same fate. 
+ 
 
-Continuous learning is the task of mitigating a neural network's tendency to discard previously learnt knowledge while learning a new task. Few-shot learning deals with acquiring maximal knowledge from limited samples in a problem domain. We explore the combination of these two tasks -- Few-Shot Continuous Learning (FSCL) -- and present a novel meta learning solution which rapidly re-parametrises a neural network such that it performs well on both the original, and new tasks. We show that our Meta-Learner performs well on a public dataset, obtaining results of $\sim$3x that of a standard transfer-learning solution.
 
 
 \chapter{Introduction}
@@ -1099,7 +1101,8 @@ As deep-learning is a computationally expensive task, a computer with a high-end
 
 
 \chapter{Results} \label{results-chapter}
-For comparison in each of the following experiments, we describe a \textbf{Baseline Transfer Learning} procedure, which is performed in the following manner:
+\subsubsection{Baseline Transfer Learning}
+For comparison in each of the following experiments, we describe a \textit{Baseline Transfer Learning} procedure, which is performed in the following manner:
 \begin{enumerate}
 	\item Take the same source models as used in the related experiment and add additional output weights for target class predictions.
 	\item Perform 5-shot optimisation with a standard SGD optimiser, with a learning rate search in $[10^{-5}, 1]$, training for 1 step, and for 5 steps.
